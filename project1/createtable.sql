@@ -4,7 +4,7 @@ CREATE DATABASE IF NOT EXISTS `moviedb`;
 USE `moviedb`;
 
 -- Drop tables in the reverse order of creation.
-/*
+
 DROP TABLE IF EXISTS `sales`;
 DROP TABLE IF EXISTS `customers`;
 DROP TABLE IF EXISTS `stars_in_movies`;
@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS `genres_in_movies`;
 DROP TABLE IF EXISTS `genres`;
 DROP TABLE IF EXISTS `movies`;
 DROP TABLE IF EXISTS `creditcards`;
-*/
+
 
 CREATE TABLE IF NOT EXISTS `creditcards` (
 	`id` VARCHAR(20) NOT NULL,
@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS `genres` (
 CREATE TABLE IF NOT EXISTS `genres_in_movies` (
 	`genre_id` INTEGER NOT NULL,
     `movie_id` INTEGER NOT NULL,
-    FOREIGN KEY(`genre_id`) REFERENCES `genres`(`id`),
-	FOREIGN KEY(`movie_id`) REFERENCES `movies`(`id`)
+    FOREIGN KEY(`genre_id`) REFERENCES `genres`(`id`) ON DELETE CASCADE,
+	FOREIGN KEY(`movie_id`) REFERENCES `movies`(`id`) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS `stars` (
@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS `stars` (
 CREATE TABLE IF NOT EXISTS `stars_in_movies` (
 	`star_id` INTEGER NOT NULL,
     `movie_id` INTEGER NOT NULL,
-    FOREIGN KEY(`star_id`) REFERENCES `stars`(`id`),
-    FOREIGN KEY(`movie_id`) REFERENCES `movies`(`id`)
+    FOREIGN KEY(`star_id`) REFERENCES `stars`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY(`movie_id`) REFERENCES `movies`(`id`) ON DELETE CASCADE
 );
 
 
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `customers` (
     `address` VARCHAR(200) NOT NULL,
     `email` VARCHAR(50) NOT NULL,
     `password` VARCHAR(20) NOT NULL,
-    FOREIGN KEY(`cc_id`) REFERENCES `creditcards`(`id`),
+    CONSTRAINT `FK_creditcard` FOREIGN KEY(`cc_id`) REFERENCES `creditcards`(`id`) ON DELETE NO ACTION,
     PRIMARY KEY(`id`)
     
 );
@@ -81,14 +81,8 @@ CREATE TABLE IF NOT EXISTS `sales` (
     `customer_id` INTEGER NOT NULL,
     `movie_id` INTEGER NOT NULL,
     `sale_date` DATE NOT NULL,
-    FOREIGN KEY(`movie_id`) REFERENCES `movies`(`id`),
-    FOREIGN KEY(`customer_id`) REFERENCES `customers`(`id`),
+    FOREIGN KEY(`movie_id`) REFERENCES `movies`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY(`customer_id`) REFERENCES `customers`(`id`) ON DELETE CASCADE,
     PRIMARY KEY(`id`)
     
 );
-
-SELECT *
-FROM creditcards cc
-WHERE cc.id = 0;
-
-
