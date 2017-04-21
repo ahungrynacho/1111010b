@@ -9,11 +9,16 @@ public class SearchModelJdbc {
 	private DataSource dataSource;
 	
 	public SearchModelJdbc(DataSource dataSource) {
+		/* 
+		 * Critical for connecting the mySQL database
+		 * and tomcat in eclipse. 
+		 * */
 		this.dataSource = dataSource;
 	}
 	
 	private void close(Connection connection, 
 			Statement statement, ResultSet result) {
+		/* Closes connections to the database. */
 		try {
 			if (connection != null)
 				connection.close();
@@ -28,41 +33,25 @@ public class SearchModelJdbc {
 		
 	}
 	
-	private String searchByTitle(String title) {
-		return String.format("SELECT * FROM movies m WHERE m.title = '%s'", title);
+	private String searchByKeywords(String keywords) {
+		/* 
+		 * Returns a mySQL query string of records that match keywords in any column. 
+		 * %% is the escape character for %. 
+		 * */
+		return String.format("SELECT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
+				+ "FROM movies m, stars s, stars_in_movies sim "
+				+ "WHERE m.title LIKE '%%1$s%%' OR m.director LIKE '%%1$s%%' OR "
+				+ "(s.id = sim.star_id AND m.id = sim.movie_id AND "
+				+ "(s.first_name LIKE '%%1$s%%' OR s.last_name LIKE '%%1$s%%'))", keywords);
 	}
 	
-	private String searchByYear(int year) {
-		return String.format("SELECT * FROM movies m WHERE m.year = %d", year);
-	}
-	
-	private String searchByDirector(String director) {
-		return String.format("SELECT * FROM movies m WHERE m.director = '%s'", director);
-	}
-	
-	private String searchByFirstName(String name) {
-		return String.format("SELECT * FROM movies m, stars s, stars_in_movies sim "
-							+ "WHERE s.first_name LIKE '%%1$s%%' AND "
-							+ "m.id = sim.movie_id AND s.id = sim.star_id", name);
-	}
-	
-	private String searchByLastName(String name) {
-		return String.format("SELECT * FROM movies m, stars s, stars_in_movies sim "
-							+ "WHERE s.last_name LIKE '%%1$s%%' AND "
-							+ "m.id = sim.movie_id AND s.id = sim.star_id", name);
-	}
-	
-	private String searchByFullName(String name) {
-		return String.format("SELECT * FROM movies m, stars s, stars_in_movies sim "
-							+ "WHERE s.first_name LIKE '%%1$s%%' AND "
-							+ "s.last_name LIKE '%%1$s%%' AND "
-							+ "m.id = sim.movie_id AND s.id = sim.star_id", name);
-	}
-	
-	public String generateQuery(String title, String year, String director, 
+	private String generateQuery(String title, String year, String director, 
 								String firstName, String lastName) {
+		/* 
+		 * Dynamically generates mySQL query strings
+		 * covering 120 (5!) possible search combinations. 
+		 * */
 		
-		/* Dynamically generates mySQL query strings. */
 		String query = null;
 		String[] argv = {title, year, director, firstName, lastName};
 		String[] queries = {
@@ -75,26 +64,36 @@ public class SearchModelJdbc {
 						+ "m.id = sim.movie_id AND s.id = sim.star_id", lastName)
 				};
 		
-		if (title == null && year == null && director == null 
-				&& firstName == null && lastName == null) {
+		/* 
+		 * Input values are null on initialization 
+		 * but are "" after 'submit' button is pressed.
+		 * Be aware that calling equalsIgnoreCase() on a 
+		 * variable of type String that assigned to null
+		 * will yield to a NullPointerException.
+		 */
+		if ((title == null && year == null && director == null 
+				&& firstName == null && lastName == null) 
+				|| (title.equalsIgnoreCase("") && year.equalsIgnoreCase("") 
+				&& director.equalsIgnoreCase("") && firstName.equalsIgnoreCase("") 
+				&& lastName.equalsIgnoreCase("")))
 			return null;
-		}
-		else if (firstName != null || lastName != null)
-			query = "SELECT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
-					+ "FROM movies m, stars s, stars_in_movies sim "
-					+ "WHERE ";
-		else
+		
+		else if (firstName.equalsIgnoreCase("") && lastName.equalsIgnoreCase(""))
 			query = "SELECT * "
 					+ "FROM movies m "
+					+ "WHERE ";
+		else
+			query = "SELECT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
+					+ "FROM movies m, stars s, stars_in_movies sim "
 					+ "WHERE ";
 		
 		boolean firstAttribute = true;
 		for (int i = 0; i < argv.length; ++i) {
-			if (argv[i] != null && firstAttribute) {
+			if (!argv[i].equalsIgnoreCase("") && firstAttribute) {
 				query += queries[i];
 				firstAttribute = false;
 			}
-			else if (argv[i] != null) {
+			else if (!argv[i].equalsIgnoreCase("")) {
 				query += " AND " + queries[i];
 			}
 		}
@@ -102,16 +101,10 @@ public class SearchModelJdbc {
 		return query;
 	}
 	
-	
-	private String searchByKeywords(String keywords) {
-		return String.format("SELECT * FROM movies m, stars s, stars_in_movies sim "
-			+ "WHERE m.title LIKE '%%1$s%%' OR m.director LIKE '%%1$s%%' OR "
-			+ "(s.id = sim.star_id AND m.id = sim.movie_id AND "
-			+ "(s.first_name LIKE '%%1$s%%' OR s.last_name LIKE '%%1$s%%'))", keywords);
-	}
-	
 	public ArrayList<Movie> searchMovies(String title, String year, 
 			String director, String firstName, String lastName) throws Exception {
+		
+		/* Retrieves records from the database that match the given mySQL query. */
 		
 		ArrayList<Movie> movies = new ArrayList<Movie>();
 		Connection connection = null;
@@ -123,25 +116,21 @@ public class SearchModelJdbc {
 			connection = dataSource.getConnection();
 			statement = connection.createStatement();
 			
-			// query = this.generateQuery(title, year, director, firstName, lastName);
-			query = "SELECT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
-					+ "FROM movies m, stars s, stars_in_movies sim "
-					+ "WHERE s.first_name LIKE '%tom%' AND m.id = sim.movie_id AND s.id = sim.star_id";
-			
+			query = this.generateQuery(title, year, director, firstName, lastName);
 			if (query != null) {
-				result = statement.executeQuery(query);
 				
+				result = statement.executeQuery(query);
 				while (result.next()) {
 					movies.add(new Movie(result.getInt("id"), result.getString("title"),
 										result.getInt("year"), result.getString("director"), 
 										result.getString("banner_url"), result.getString("trailer_url")));
 				}
 			}
-			return movies;
+			
 		} finally {
 			close(connection, statement, result);
 		}
-		
+		return movies;
 	}
 
 

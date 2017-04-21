@@ -10,57 +10,48 @@
 <% 
 	// list movies from the request object sent by SearchControllerServlet
 	ArrayList<Movie> movies = (ArrayList<Movie>) request.getAttribute("movies");
-	
 %>
 
 
 <body>
-	<div id="form">
-		<form action="SearchControllerServlet" method="GET">		
-			<table>
-				<tbody>
+
+	<form action="SearchControllerServlet" method="GET">		
+		<table>
+			<tbody>
+			
+				<tr>
+					<td><label>Title:</label></td>
+					<td><input type="text" name="title" /></td>
+				</tr>
 				
-					<tr>
-						<td><label>Title:</label></td>
-						<td><input type="text" name="title"/></td>
-					</tr>
-					
-					<tr>
-						<td><label>Year:</label></td>
-						<td><input type="text" name="year"/></td>
-					</tr>
-					
-					<tr>
-						<td><label>Director:</label></td>
-						<td><input type="text" name="director"/></td>
-					</tr>
-					
-					<tr>
-						<td><label>First Name:</label></td>
-						<td><input type="text" name="firstName"/></td>
-					</tr>
-					
-					<tr>
-						<td><label>Last Name:</label></td>
-						<td><input type="text" name="lastName"/></td>
-					</tr>
-					
-					<tr>
-						<td><label></label></td>
-						<td><button type="submit" formtarget="_blank">Search</button></td>
+				<tr>
+					<td><label>Year:</label></td>
+					<td><input type="text" name="year" /></td>
+				</tr>
+				
+				<tr>
+					<td><label>Director:</label></td>
+					<td><input type="text" name="director" /></td>
+				</tr>
+				
+				<tr>
+					<td><label>First Name:</label></td>
+					<td><input type="text" name="firstName" /></td>
+				</tr>
+				
+				<tr>
+					<td><label>Last Name:</label></td>
+					<td><input type="text" name="lastName" /></td>
+				</tr>
+				
+				<tr>
+					<td><input type="submit" value="Search"/></td>
+				</tr>
 		
-					</tr>
-				
-				</tbody>
-			</table>
-		</form>
-	</div>
-	
-	<div id="output">
-	
-	
-	</div>
-	
+			</tbody>
+		</table>
+	</form>
+
 
 	<table>
 		<tr>
@@ -71,9 +62,8 @@
 			<th>Banner URL</th>
 			<th>Trailer URL</th>
 		</tr>
-
-		<%  for (Movie m : movies) { %>
-		
+ 
+		<%  for (Movie m : movies) { %> 
 			<tr>
 				<td> <%=  m.getId() %> </td>
 				<td> <%=  m.getTitle() %> </td>
@@ -83,8 +73,8 @@
 				<td> <%=  m.getTrailer_url() %> </td>
 			</tr>
 		
-		<% } %>
-		
+		<% } %>	
+	
 	</table>
 
 </body>
