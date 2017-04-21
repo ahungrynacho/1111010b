@@ -1,40 +1,93 @@
 <%@ page import="java.util.*, project2.*"%>
 <!DOCTYPE html>
 <html>
-<body>
-
-<head>
 	<title>Search Movies</title>
+	<head lang="en">
+	<meta charset="UTF-8">
+	</head>
 
-</head>
-
-<form action="SearchControllerServlet" method="GET">
-	Title: <input type="text" name="title"/>
-	<br></br>
-	Year: <input type="text" name="year"/>
-	<br></br>
-	Director: <input type="text" name="director"/>
-	<br></br>
-	Name: <input type="text" name="name"/>
-	<br></br>
-	
-	<input type="submit" value="Submit"/>
-
-</form>
 
 <% 
 	// list movies from the request object sent by SearchControllerServlet
-	ArrayList<Movie> movies = (ArrayList<Movie>) request.getAttribute("MOVIES");
-%>	
-	<% for (Movie m : movies) { %>
-		id: <% %>
-		title: <% %>
-		year: <% %>
-		director: <% %>
-		list of genres: <% %>
-		list of stars: <% %>
-	<% } %>
+	ArrayList<Movie> movies = (ArrayList<Movie>) request.getAttribute("movies");
+	
+%>
+
+
+<body>
+	<div id="form">
+		<form action="SearchControllerServlet" method="GET">		
+			<table>
+				<tbody>
+				
+					<tr>
+						<td><label>Title:</label></td>
+						<td><input type="text" name="title"/></td>
+					</tr>
+					
+					<tr>
+						<td><label>Year:</label></td>
+						<td><input type="text" name="year"/></td>
+					</tr>
+					
+					<tr>
+						<td><label>Director:</label></td>
+						<td><input type="text" name="director"/></td>
+					</tr>
+					
+					<tr>
+						<td><label>First Name:</label></td>
+						<td><input type="text" name="firstName"/></td>
+					</tr>
+					
+					<tr>
+						<td><label>Last Name:</label></td>
+						<td><input type="text" name="lastName"/></td>
+					</tr>
+					
+					<tr>
+						<td><label></label></td>
+						<td><button type="submit" formtarget="_blank">Search</button></td>
+		
+					</tr>
+				
+				</tbody>
+			</table>
+		</form>
+	</div>
+	
+	<div id="output">
+	
+	
+	</div>
+	
+
+	<table>
+		<tr>
+			<th>ID</th>
+			<th>Title</th>
+			<th>Year</th>
+			<th>Director</th>
+			<th>Banner URL</th>
+			<th>Trailer URL</th>
+		</tr>
+
+		<%  for (Movie m : movies) { %>
+		
+			<tr>
+				<td> <%=  m.getId() %> </td>
+				<td> <%=  m.getTitle() %> </td>
+				<td> <%=  m.getYear() %> </td>
+				<td> <%=  m.getDirector() %> </td>
+				<td> <%=  m.getBanner_url() %> </td>
+				<td> <%=  m.getTrailer_url() %> </td>
+			</tr>
+		
+		<% } %>
+		
+	</table>
 
 </body>
 </html>
+
 

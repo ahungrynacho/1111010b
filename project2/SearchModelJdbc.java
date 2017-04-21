@@ -2,32 +2,25 @@ package project2;
 import java.sql.*;
 import java.util.ArrayList;
 
+import javax.sql.DataSource;
+
 public class SearchModelJdbc {
-	private static String URL = "jdbc:mysql:///moviedb?autoReconnect=true&useSSL=false";
-	private static String USER = null;		// bbhuynh
-	private static String PASSWORD = null;		// spring2017
-	private static String[] TABLES = {
-			"movies", "stars", "stars_in_movies",
-			"genres", "genres_in_movies", "customers",
-			"sales", "creditcards"
-			};
 	
-	public SearchModelJdbc() throws Exception {
-		Class.forName("com.mysql.jdbc.Driver").newInstance();
+	private DataSource dataSource;
+	
+	public SearchModelJdbc(DataSource dataSource) {
+		this.dataSource = dataSource;
 	}
 	
 	private void close(Connection connection, 
-			Statement statement, 
-			ArrayList<ResultSet> result) {
+			Statement statement, ResultSet result) {
 		try {
 			if (connection != null)
 				connection.close();
 			if (statement != null)
 				statement.close();
 			if (result != null) {
-				for (ResultSet r : result) {
-					r.close();
-				}
+				result.close();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -66,30 +59,36 @@ public class SearchModelJdbc {
 							+ "m.id = sim.movie_id AND s.id = sim.star_id", name);
 	}
 	
-	private String generateQuery(String title, String year, String director, 
+	public String generateQuery(String title, String year, String director, 
 								String firstName, String lastName) {
 		
 		/* Dynamically generates mySQL query strings. */
+		String query = null;
 		String[] argv = {title, year, director, firstName, lastName};
 		String[] queries = {
-				String.format("m.title = '%%1$s%%'", title),
+				String.format("m.title LIKE '%%%s%%'", title),
 				String.format("m.year = %s", year),
-				String.format("m.director = '%%1$s%%'", director),
-				String.format("s.first_name LIKE '%%1$s%%' AND "
+				String.format("m.director LIKE '%%%s%%'", director),
+				String.format("s.first_name LIKE '%%%s%%' AND "
 						+ "m.id = sim.movie_id AND s.id = sim.star_id", firstName),
-				String.format("s.last_name LIKE '%%1$s%%' AND "
+				String.format("s.last_name LIKE '%%%s%%' AND "
 						+ "m.id = sim.movie_id AND s.id = sim.star_id", lastName)
 				};
 		
-//		String matchFullName = String.format("s.first_name LIKE '%%1$s%%' AND "
-//				+ "s.last_name LIKE %%1$s%%' AND "
-//				+ "m.id = sim.movie_id AND s.id = sim.star_id", firstName);
+		if (title == null && year == null && director == null 
+				&& firstName == null && lastName == null) {
+			return null;
+		}
+		else if (firstName != null || lastName != null)
+			query = "SELECT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
+					+ "FROM movies m, stars s, stars_in_movies sim "
+					+ "WHERE ";
+		else
+			query = "SELECT * "
+					+ "FROM movies m "
+					+ "WHERE ";
 		
-		String query = "SELECT * "
-				+ "FROM movies m, stars s, stars_in_movies sim "
-				+ "WHERE ";
 		boolean firstAttribute = true;
-		
 		for (int i = 0; i < argv.length; ++i) {
 			if (argv[i] != null && firstAttribute) {
 				query += queries[i];
@@ -111,50 +110,38 @@ public class SearchModelJdbc {
 			+ "(s.first_name LIKE '%%1$s%%' OR s.last_name LIKE '%%1$s%%'))", keywords);
 	}
 	
-	public ArrayList<Movie> getMovies(String title, String year, 
+	public ArrayList<Movie> searchMovies(String title, String year, 
 			String director, String firstName, String lastName) throws Exception {
 		
-		String[] args = {title, year, director, firstName, lastName};
 		ArrayList<Movie> movies = new ArrayList<Movie>();
-		ArrayList<ResultSet> results = new ArrayList<ResultSet>();
-		
 		Connection connection = null;
 		Statement statement = null;
+		ResultSet result = null;
+		String query = null;
 		
 		try {
-			connection = DriverManager.getConnection(SearchModelJdbc.URL,
-														SearchModelJdbc.USER,
-														SearchModelJdbc.PASSWORD);
+			connection = dataSource.getConnection();
 			statement = connection.createStatement();
 			
-			for (String arg : args) {
-				if (arg != null) {
-					String query = null;
-					if (arg.equalsIgnoreCase(title))
-						query = searchByTitle(title);
-					else if (arg.equalsIgnoreCase(year))
-						query = searchByYear(Integer.parseInt(year));
-					else if (arg.equalsIgnoreCase(director))
-						query = searchByDirector(director);
-					else if (arg.equalsIgnoreCase(firstName))
-						query = searchByFirstName(firstName);
-					else if (arg.equalsIgnoreCase(lastName))
-						query = searchByLastName(lastName);
-
-					if (query != null)
-						results.add(statement.executeQuery(query));
+			// query = this.generateQuery(title, year, director, firstName, lastName);
+			query = "SELECT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
+					+ "FROM movies m, stars s, stars_in_movies sim "
+					+ "WHERE s.first_name LIKE '%tom%' AND m.id = sim.movie_id AND s.id = sim.star_id";
+			
+			if (query != null) {
+				result = statement.executeQuery(query);
+				
+				while (result.next()) {
+					movies.add(new Movie(result.getInt("id"), result.getString("title"),
+										result.getInt("year"), result.getString("director"), 
+										result.getString("banner_url"), result.getString("trailer_url")));
 				}
 			}
-			
-			// JOIN TABLES by matching movie ids 
-			for (ResultSet r : results) {
-				
-			}
-
+			return movies;
 		} finally {
-			close(connection, statement, results);
+			close(connection, statement, result);
 		}
-		return movies;
+		
 	}
 
 
