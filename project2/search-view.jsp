@@ -20,38 +20,43 @@
 			<tbody>
 			
 				<tr>
-					<td><label>Title:</label></td>
+					<td><label>Title </label></td>
 					<td><input type="text" name="title" /></td>
 				</tr>
 				
 				<tr>
-					<td><label>Year:</label></td>
+					<td><label>Year </label></td>
 					<td><input type="text" name="year" /></td>
 				</tr>
 				
 				<tr>
-					<td><label>Director:</label></td>
+					<td><label>Director </label></td>
 					<td><input type="text" name="director" /></td>
 				</tr>
 				
 				<tr>
-					<td><label>First Name:</label></td>
+					<td><label>First Name </label></td>
 					<td><input type="text" name="firstName" /></td>
 				</tr>
 				
 				<tr>
-					<td><label>Last Name:</label></td>
+					<td><label>Last Name </label></td>
 					<td><input type="text" name="lastName" /></td>
 				</tr>
 				
 				<tr>
-					<td><input type="submit" value="Search"/></td>
+					<td><button type="submit" name="button" value="searchByFields">Search</button></td>
 				</tr>
 		
 			</tbody>
 		</table>
 	</form>
-
+	
+	<br></br>
+	<form action="SearchControllerServlet" method="GET">
+		General Search <input type="text" name="keywords"/>
+		<button type="submit" name="button" value="searchByKeywords">Search</button>
+	</form>
 
 	<table>
 		<tr>

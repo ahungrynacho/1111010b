@@ -12,7 +12,7 @@ public class SearchModelJdbc {
 		/* 
 		 * Critical for connecting the mySQL database
 		 * and tomcat in eclipse. 
-		 * */
+		 */
 		this.dataSource = dataSource;
 	}
 	
@@ -33,16 +33,26 @@ public class SearchModelJdbc {
 		
 	}
 	
-	private String searchByKeywords(String keywords) {
+	private String[] stripSpaces(String sentence) {
+		/* Splits a string by '', " ", \t, or \n as delimiters. */
+		return sentence.split("\\s+");
+	}
+	
+	private String generateGeneralQuery(String keywords) {
 		/* 
 		 * Returns a mySQL query string of records that match keywords in any column. 
 		 * %% is the escape character for %. 
-		 * */
-		return String.format("SELECT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
+		 */
+		
+		if (keywords == null || keywords.equalsIgnoreCase(""))
+			return null;
+		else {
+			return String.format("SELECT DISTINCT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
 				+ "FROM movies m, stars s, stars_in_movies sim "
-				+ "WHERE m.title LIKE '%%1$s%%' OR m.director LIKE '%%1$s%%' OR "
+				+ "WHERE m.title LIKE '%%%1$s%%' OR m.director LIKE '%%%1$s%%' OR "
 				+ "(s.id = sim.star_id AND m.id = sim.movie_id AND "
-				+ "(s.first_name LIKE '%%1$s%%' OR s.last_name LIKE '%%1$s%%'))", keywords);
+				+ "(s.first_name LIKE '%%%1$s%%' OR s.last_name LIKE '%%%1$s%%'))", keywords);
+		}
 	}
 	
 	private String generateQuery(String title, String year, String director, 
@@ -50,7 +60,7 @@ public class SearchModelJdbc {
 		/* 
 		 * Dynamically generates mySQL query strings
 		 * covering 120 (5!) possible search combinations. 
-		 * */
+		 */
 		
 		String query = null;
 		String[] argv = {title, year, director, firstName, lastName};
@@ -97,14 +107,28 @@ public class SearchModelJdbc {
 				query += " AND " + queries[i];
 			}
 		}
-		
+				
 		return query;
 	}
 	
-	public ArrayList<Movie> searchMovies(String title, String year, 
-			String director, String firstName, String lastName) throws Exception {
+	private void addMovies(ResultSet result, ArrayList<Movie> movies) throws Exception {
+		/* Helper function populating a list of movies returned from a query. */
 		
-		/* Retrieves records from the database that match the given mySQL query. */
+		while (result.next()) {
+			movies.add(new Movie(result.getInt("id"), result.getString("title"),
+					result.getInt("year"), result.getString("director"), 
+					result.getString("banner_url"), result.getString("trailer_url")));
+		}
+	}
+	
+	
+	public ArrayList<Movie> moviesByKeywords(String keywords) throws Exception {
+		
+		/* 
+		 * Establishes an individual connection to the database 
+		 * and retrieves records from the database that match 
+		 * the given mySQL query. 
+		 */
 		
 		ArrayList<Movie> movies = new ArrayList<Movie>();
 		Connection connection = null;
@@ -115,16 +139,42 @@ public class SearchModelJdbc {
 		try {
 			connection = dataSource.getConnection();
 			statement = connection.createStatement();
+			query = this.generateGeneralQuery(keywords);
+			System.out.println(query);
 			
-			query = this.generateQuery(title, year, director, firstName, lastName);
 			if (query != null) {
-				
 				result = statement.executeQuery(query);
-				while (result.next()) {
-					movies.add(new Movie(result.getInt("id"), result.getString("title"),
-										result.getInt("year"), result.getString("director"), 
-										result.getString("banner_url"), result.getString("trailer_url")));
-				}
+				addMovies(result, movies);
+			}
+		} finally {
+			close(connection, statement, result);
+		}
+		return movies;
+	}
+	
+	public ArrayList<Movie> searchMovies(String title, String year, 
+			String director, String firstName, String lastName) throws Exception {
+		
+		/* 
+		 * Establishes an individual connection to the database 
+		 * and retrieves records from the database that match 
+		 * the given mySQL query. 
+		 */
+		
+		ArrayList<Movie> movies = new ArrayList<Movie>();
+		Connection connection = null;
+		Statement statement = null;
+		ResultSet result = null;
+		String query = null;
+		
+		try {
+			connection = dataSource.getConnection();
+			statement = connection.createStatement();
+			query = this.generateQuery(title, year, director, firstName, lastName);
+			
+			if (query != null) {		
+				result = statement.executeQuery(query);
+				addMovies(result, movies);
 			}
 			
 		} finally {

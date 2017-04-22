@@ -1,7 +1,6 @@
 package project2;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import javax.annotation.Resource;
@@ -37,9 +36,10 @@ public class SearchControllerServlet extends HttpServlet {
 	
 	private void searchMovies(HttpServletRequest request, HttpServletResponse response) throws Exception{
 		/* 
-		 * Get user input from the html form and execute a query. 
-		 * Populate a list of movie objects with each matching record 
-		 * and send the list back to the html page.
+		 * Get user input from the html form with multiple input 
+		 * fields and execute a query. Populate a list of movie 
+		 * objects with each matching record and send the list 
+		 * back to the html page.
 		 */
 		String title = request.getParameter("title");
 		String year = request.getParameter("year");
@@ -55,13 +55,44 @@ public class SearchControllerServlet extends HttpServlet {
 		dispatcher.forward(request, response);
 
 	}
+	
+	private void searchByKeywords(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		/*
+		 * Get user input from the html form with a single input field
+		 * and execute a query. Populate a list of movie objects with
+		 * each matching record and send the list back to the html page.
+		 */
+		String keywords = request.getParameter("keywords");
+		ArrayList<Movie> movies = database.moviesByKeywords(keywords);
+		request.setAttribute("movies", movies);
+		RequestDispatcher dispatcher = request.getRequestDispatcher("/search-view.jsp");
+		dispatcher.forward(request, response);
+	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 //		PrintWriter out = response.getWriter();
 //		response.setContentType("text/plain");	
 		
+		String command = request.getParameter("button");
+		
+		if (command == null)
+			command = "searchByFields";
+		
 		try {
-			searchMovies(request, response);	
+			switch(command) {
+			
+			case "searchByFields":
+				searchMovies(request, response);
+				break;
+				
+			case "searchByKeywords":
+				searchByKeywords(request, response);
+				break;
+
+			default:
+				break;		// do nothing
+			}
+			
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}
@@ -76,5 +107,6 @@ public class SearchControllerServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		doGet(request, response);
 	}
-
+	
 }
+
