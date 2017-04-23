@@ -1,6 +1,9 @@
 package project2;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
@@ -38,21 +41,84 @@ public class SearchModelJdbc {
 		return sentence.split("\\s+");
 	}
 	
+	private boolean hasPattern(String regex, String str) {
+		/* 
+		 * Returns true if the regex pattern is found 
+		 * in str otherwise return false. 
+		 */ 
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(str);
+		return matcher.find();
+	}
+	
+	
+	
 	private String generateGeneralQuery(String keywords) {
 		/* 
 		 * Returns a mySQL query string of records that match keywords in any column. 
 		 * %% is the escape character for %. 
 		 */
-		
+		String query = null;
 		if (keywords == null || keywords.equalsIgnoreCase(""))
 			return null;
 		else {
-			return String.format("SELECT DISTINCT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
-				+ "FROM movies m, stars s, stars_in_movies sim "
-				+ "WHERE m.title LIKE '%%%1$s%%' OR m.director LIKE '%%%1$s%%' OR "
-				+ "(s.id = sim.star_id AND m.id = sim.movie_id AND "
-				+ "(s.first_name LIKE '%%%1$s%%' OR s.last_name LIKE '%%%1$s%%'))", keywords);
+			query = "SELECT DISTINCT m.id, m.title, m.year, m.director, m.banner_url, m.trailer_url "
+					+ "FROM movies m, stars s, stars_in_movies sim "
+					+ "WHERE ";
+			
+			ArrayList<String> subqueries = new ArrayList<String>(Arrays.asList(
+					"m.title LIKE",
+					"m.year =",
+					"m.director LIKE",
+					"s.id = sim.star_id AND m.id = sim.movie_id AND s.first_name LIKE",
+					"s.id = sim.star_id AND m.id = sim.movie_id AND s.last_name LIKE"
+					));
+
+			ArrayList<String> result = new ArrayList<String>();
+			
+			String[] words = stripSpaces(keywords);
+			for (String q : subqueries) {
+				String temp = "";
+				for (int i = 0; i < words.length; ++i) {
+					if (temp.equalsIgnoreCase("") 
+							&& subqueries.indexOf(q) == 1 
+							&& hasPattern("^[0-9]+$", words[i]))
+						temp += String.format("%s %s", q, words[i]);
+					
+					else if (subqueries.indexOf(q) == 1 
+							&& hasPattern("^[0-9]+$", words[i]))
+						temp += String.format(" OR %s %s", q, words[i]);
+					
+					else if (temp.equalsIgnoreCase("") 
+							&& subqueries.indexOf(q) > 1 
+							&& hasPattern("^[a-zA-Z\\-]+$", words[i]))
+						temp += String.format("%s '%%%s%%'", q, words[i]);
+					
+					else if (subqueries.indexOf(q) > 1 
+							&& hasPattern("^[a-zA-Z\\-]+$", words[i]))
+						temp += String.format(" OR %s '%%%s%%'", q, words[i]);
+					
+					else if (temp.equalsIgnoreCase("") 
+							&& subqueries.indexOf(q) == 0)
+						temp += String.format("%s '%%%s%%'", q, words[i]);
+			
+					else if (subqueries.indexOf(q) == 0)
+						temp += String.format(" OR %s '%%%s%%'", q, words[i]);
+				}
+				if (!temp.equalsIgnoreCase(""))
+					result.add(temp);
+			}
+			
+			for (String q : result) {
+				if (result.indexOf(q) == 0)
+					query += q;
+				else
+					query += String.format(" OR %s", q);
+			}
+
 		}
+
+		return query;
 	}
 	
 	private String generateQuery(String title, String year, String director, 
@@ -140,7 +206,6 @@ public class SearchModelJdbc {
 			connection = dataSource.getConnection();
 			statement = connection.createStatement();
 			query = this.generateGeneralQuery(keywords);
-			System.out.println(query);
 			
 			if (query != null) {
 				result = statement.executeQuery(query);
