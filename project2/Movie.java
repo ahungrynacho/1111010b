@@ -1,22 +1,30 @@
 package project2;
 
+import java.util.ArrayList;
+
 public class Movie {
 	private int id;
 	private String title;
 	private int year;
 	private String director;
-	private String banner_url;
-	private String trailer_url;
+	private String bannerUrl;
+	private String trailerUrl;
+	private ArrayList<Genre> genres;
+	private ArrayList<Star> stars;
+	private int quantity = 0;		// number of movies purchased
 	
 	public Movie(int id, String title, int year, 
-			String director, String banner_url, String trailer_url) {
+			String director, String bannerUrl, String trailerUrl, ArrayList<Genre> genres, ArrayList<Star> stars) {
 		
 		this.id = id;
 		this.title = title;
 		this.year = year;
 		this.director = director;
-		this.banner_url = banner_url;
-		this.trailer_url = trailer_url;
+		this.bannerUrl = bannerUrl;
+		this.trailerUrl = trailerUrl;
+		this.genres = genres;
+		this.stars = stars;
+
 	}
 
 	public int getId() {
@@ -51,22 +59,45 @@ public class Movie {
 		this.director = director;
 	}
 
-	public String getBanner_url() {
-		return banner_url;
+	public String getbannerUrl() {
+		return bannerUrl;
 	}
 
-	public void setBanner_url(String banner_url) {
-		this.banner_url = banner_url;
+	public void setbannerUrl(String bannerUrl) {
+		this.bannerUrl = bannerUrl;
 	}
 
-	public String getTrailer_url() {
-		return trailer_url;
+	public String gettrailerUrl() {
+		return trailerUrl;
 	}
 
-	public void setTrailer_url(String trailer_url) {
-		this.trailer_url = trailer_url;
+	public void settrailerUrl(String trailerUrl) {
+		this.trailerUrl = trailerUrl;
 	}
-	
-	
+
+	public ArrayList<Genre> getGenres() {
+		return genres;
+	}
+
+	public void setGenres(ArrayList<Genre> genres) {
+		this.genres = genres;
+	}
+
+	public ArrayList<Star> getstars() {
+		return stars;
+	}
+
+	public void setstars(ArrayList<Star> stars) {
+		this.stars = stars;
+	}
+
+	public int getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+
 
 }

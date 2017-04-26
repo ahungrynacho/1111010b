@@ -1,4 +1,5 @@
-<%@ page import="java.util.*, project2.*"%>
+<%@page import="java.util.*, project2.*"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <!DOCTYPE html>
 <html>
 	<title>Search Movies</title>
@@ -6,16 +7,9 @@
 	<meta charset="UTF-8">
 	</head>
 
-
-<% 
-	// list movies from the request object sent by SearchControllerServlet
-	ArrayList<Movie> movies = (ArrayList<Movie>) request.getAttribute("movies");
-%>
-
-
 <body>
 
-	<form action="SearchControllerServlet" method="GET">		
+	<form action="FabflixControllerServlet" method="GET">		
 		<table>
 			<tbody>
 			
@@ -45,7 +39,7 @@
 				</tr>
 				
 				<tr>
-					<td><button type="submit" name="button" value="searchByFields">Search</button></td>
+					<td><button type="submit" name="command" value="searchByFields">Search</button></td>
 				</tr>
 		
 			</tbody>
@@ -53,34 +47,63 @@
 	</form>
 	
 	<br></br>
-	<form action="SearchControllerServlet" method="GET">
+	<form action="FabflixControllerServlet" method="GET">
 		General Search <input type="text" name="keywords"/>
-		<button type="submit" name="button" value="searchByKeywords">Search</button>
+		<button type="submit" name="command" value="searchByKeywords">Search</button>
 	</form>
-
-	<table>
-		<tr>
-			<th>ID</th>
-			<th>Title</th>
-			<th>Year</th>
-			<th>Director</th>
-			<th>Banner URL</th>
-			<th>Trailer URL</th>
-		</tr>
- 
-		<%  for (Movie m : movies) { %> 
-			<tr>
-				<td> <%=  m.getId() %> </td>
-				<td> <%=  m.getTitle() %> </td>
-				<td> <%=  m.getYear() %> </td>
-				<td> <%=  m.getDirector() %> </td>
-				<td> <%=  m.getBanner_url() %> </td>
-				<td> <%=  m.getTrailer_url() %> </td>
-			</tr>
-		
-		<% } %>	
 	
-	</table>
+	<br></br>
+	<a href="checkout-view.jsp">Proceed to Checkout</a>
+
+	<form action="FabflixControllerServlet" method="GET">
+		<table>
+			<tr>
+				<th>ID</th>
+				<th>Title</th>
+				<th>Year</th>
+				<th>Director</th>
+				<th>Genre</th>
+				<th>Movie Stars</th>
+			</tr>
+			
+			<c:forEach var="m" items="${MOVIES}">
+				<!-- set up a link for each movie -->
+				<c:url var="movieLink" value="FabflixControllerServlet">
+					<c:param name="command" value="linkToMovie" />
+					<c:param name="movieId" value="${m.id}" />
+				</c:url>
+																	
+				<tr>
+					<td> ${m.id} </td>
+					<td> <a href="${movieLink}">${m.title}</a></td>
+					<td> ${m.year} </td>
+					<td> ${m.director} </td>
+					<td>
+						<table>
+							<c:forEach var="g" items="${m.genres}">
+								<tr>
+									<td> ${g.name} </td>
+								</tr>
+							</c:forEach>
+						</table>
+					</td>
+					<td> 
+						<table>
+							<c:forEach var="s" items="${m.stars}">
+								<tr>
+									<td> ${s.firstName} ${s.lastName} </td>
+								</tr>
+							</c:forEach>
+						</table>
+					</td>
+					
+					
+				</tr>
+			</c:forEach>
+
+ 		
+		</table>
+	</form>
 
 </body>
 </html>
