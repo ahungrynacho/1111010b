@@ -24,7 +24,9 @@ public class FabflixControllerServlet extends HttpServlet {
 	private FabflixModelJdbc database;
 	@Resource(name="jdbc/moviedb") 		// Critical for connecting the SQL database and tomcat in eclipse.
 	private DataSource dataSource;
+	
 	private ArrayList<Movie> movies;
+	private Movie currentMovie;
 	private ArrayList<Movie> shoppingCart;
 	private Customer customer;
 	private HttpSession session;
@@ -34,8 +36,12 @@ public class FabflixControllerServlet extends HttpServlet {
 		super.init();
 		
 		try {
-			database = new FabflixModelJdbc(dataSource);
-			shoppingCart = new ArrayList<Movie>();
+			this.database = new FabflixModelJdbc(dataSource);
+			this.movies = new ArrayList<Movie>();
+			this.currentMovie = null;
+			this.shoppingCart = new ArrayList<Movie>();
+			this.customer = null;
+			this.session = null;
 
 		} catch (Exception e) {
 			throw new ServletException(e);
@@ -57,13 +63,22 @@ public class FabflixControllerServlet extends HttpServlet {
 		
 	}
 	
+	private void listMovies(HttpServletRequest request, 
+							HttpServletResponse response) throws Exception {
+		/* Sends the currently cached list of movies to the jsp. */
+		
+		session.setAttribute("MOVIES", this.movies);
+		RequestDispatcher dispatcher = request.getRequestDispatcher("/search-view.jsp");
+		dispatcher.forward(request, response);
+	}
+	
 	private void searchMovies(HttpServletRequest request, 
 							HttpServletResponse response) throws Exception{
 		/* 
 		 * Get user input from the html form with multiple input 
 		 * fields and execute a query. Populate a list of movie 
 		 * objects with each matching record and send the list 
-		 * back to the html page.
+		 * back to the jsp page.
 		 */
 		
 		String title = request.getParameter("title");
@@ -73,9 +88,10 @@ public class FabflixControllerServlet extends HttpServlet {
 		String lastName = request.getParameter("lastName");
 
 		this.movies = database.searchMovies(title, year, 
-													director, firstName, 
-													lastName);
-		request.setAttribute("MOVIES", movies);
+											director, firstName, 
+											lastName);
+		
+		session.setAttribute("MOVIES", this.movies);
 		RequestDispatcher dispatcher = request.getRequestDispatcher("/search-view.jsp");
 		dispatcher.forward(request, response);
 
@@ -90,7 +106,7 @@ public class FabflixControllerServlet extends HttpServlet {
 		 */
 		String keywords = request.getParameter("keywords");
 		this.movies = database.moviesByKeywords(keywords);
-		request.setAttribute("MOVIES", movies);
+		session.setAttribute("MOVIES", this.movies);
 		RequestDispatcher dispatcher = request.getRequestDispatcher("/search-view.jsp");
 		dispatcher.forward(request, response);
 	}
@@ -104,37 +120,61 @@ public class FabflixControllerServlet extends HttpServlet {
 		return String.format("'%d/%d/%d'", year, month, day);
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void processPayment(HttpServletRequest request, 
 								HttpServletResponse response) throws Exception {
+		
+		/*
+		 * Updates the sales table in the database for every movie purchased.
+		 * Redirects the user to the confirmation page if successful; otherwise
+		 * updates the current payment page with a invalid credit card error message.
+		 */
 		
 		String firstName = request.getParameter("firstName");
 		String lastName = request.getParameter("lastName");
 		String ccid = request.getParameter("ccid");
 		String expDate = request.getParameter("expDate");
 		
-		if (database.processPayment(firstName, lastName, ccid, expDate)) {
-			request.setAttribute("SUCCESS", true);
-
+		this.shoppingCart = (ArrayList<Movie>) session.getAttribute("SHOPPING_CART");
+		RequestDispatcher dispatcher = null;
+		
+		if (database.processPayment(firstName, lastName, ccid, expDate) && 
+				this.shoppingCart != null) {
+			
+			
+			/* NullPointerException thrown because 
+			 * the customer login information has 
+			 * not been recorded yet in the session. */
+			
+			// Customer customer = (Customer) session.getAttribute("CUSTOMER");
 			for (Movie m : this.shoppingCart) {
 				database.addSale(customer.getId(), m.getId(), currentDate());
 			}
+			dispatcher = request.getRequestDispatcher("/confirmation-view.jsp");
+			dispatcher.forward(request, response);
 			
 		}
 		else {
-			request.setAttribute("SUCCESS", false);
+			request.setAttribute("FAIL", true);
+			dispatcher = request.getRequestDispatcher("/checkout-view.jsp");
+			dispatcher.forward(request, response);
 		}
 		
-		RequestDispatcher dispatcher = request.getRequestDispatcher("/confirmation-view.jsp");
-		dispatcher.forward(request, response);
+
 	}
 
 	private void linkToMovie(HttpServletRequest request, 
 							HttpServletResponse response) throws Exception {
-		String movieId = request.getParameter("movieId");
-		Movie movie = database.getMovie(movieId);
 		
-		if (movie != null) {
-			request.setAttribute("MOVIE", movie);
+		/* 
+		 * Sets the movie session attribute to a Movie object currently being
+		 * viewed in the single movie page.
+		 */
+		String movieId = request.getParameter("movieId");
+		this.currentMovie = database.getMovie(movieId);
+		
+		if (this.currentMovie != null) {
+			session.setAttribute("MOVIE", this.currentMovie);
 			RequestDispatcher dispatcher = request.getRequestDispatcher("movie-view.jsp");
 			dispatcher.forward(request, response);
 		}
@@ -144,33 +184,71 @@ public class FabflixControllerServlet extends HttpServlet {
 	private void addToCart(HttpServletRequest request, 
 							HttpServletResponse response) throws Exception {
 		/* Adds a movie to the shopping cart with the user-specified quantity. */
-		// TODO: implement JSP sessions to save each shopping cart 
-		// between pages for each user
 		
 		String quantity = request.getParameter("quantity");
-		String movieId = request.getParameter("movieId");
-		Movie movie = database.getMovie(movieId);
+		this.currentMovie = (Movie) session.getAttribute("MOVIE");
 		
-		if (quantity != null && movie != null) {
-			movie.setQuantity(Integer.parseInt(quantity));
-			this.shoppingCart.add(movie);
+		if (quantity != null && Integer.parseInt(quantity) > 0 
+				&& this.currentMovie != null) {
+			
+			this.currentMovie.setQuantity(Integer.parseInt(quantity));
+			this.shoppingCart.add(this.currentMovie);
 			session.setAttribute("SHOPPING_CART", this.shoppingCart);
+			
 			RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
 			dispatcher.forward(request, response);
+			
 		}
 		
 	}
 	
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	@SuppressWarnings("unchecked")
+	private void updateCart(HttpServletRequest request, 
+							HttpServletResponse response) throws Exception {
+		/*
+		 * Updates the quantity of each movie in the shopping cart get getting
+		 * the new quantity from the user's input. A quantity of 0 removes movies
+		 * from the shopping cart.
+		 */
+		this.shoppingCart = (ArrayList<Movie>) session.getAttribute("SHOPPING_CART");
+		ArrayList<Movie> toRemove = new ArrayList<Movie>();
+		
+		for (Movie m : this.shoppingCart) {
+			String movieId = Integer.toString(m.getId());
+			int quantity = Integer.parseInt(request.getParameter(movieId));
+	
+			if (quantity == 0)
+				toRemove.add(m);
+			
+			else if (quantity > 0)
+				m.setQuantity(quantity);
+		}
+		
+		for (Movie m : toRemove) {		// removing movies afterwards prevents ConcurrentModificationException
+			this.shoppingCart.remove(m);
+		}
+		
+		session.setAttribute("SHOPPING_CART", this.shoppingCart);
+		RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
+		dispatcher.forward(request, response);
+		
+	}
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+			throws ServletException, IOException {
 
 		session = request.getSession();
 		String command = request.getParameter("command");
 		
 		if (command == null)
-			command = "searchByFields";
+			command = "listMovies";
 		
 		try {
 			switch(command) {
+			
+			case "listMovies":
+				listMovies(request, response);
+				break;
 			
 			case "searchByFields":
 				searchMovies(request, response);
@@ -187,7 +265,14 @@ public class FabflixControllerServlet extends HttpServlet {
 			case "addToCart":
 				addToCart(request, response);
 				break;
+				
+			case "update":
+				updateCart(request, response);
+				break;
 
+			case "linkToJsp":
+				break;		// dummy value for buttons that act like href links
+				
 			default:
 				break;		// do nothing
 			}
@@ -214,7 +299,12 @@ public class FabflixControllerServlet extends HttpServlet {
 			case "creditCardInfo":
 				processPayment(request, response);
 				break;
+				
+			default:
+				break;
+				
 			}
+				
 		} catch (Exception e) {
 			throw new ServletException(e);
 		}

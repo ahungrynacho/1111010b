@@ -28,13 +28,12 @@
 	</table>
 
 	<form action="FabflixControllerServlet" method="GET">
-		<c:url var="checkout" value="FabflixControllerServlet">
-			<c:param name="command" value="addToCart" />
-			<c:param name="movieId" value="${MOVIE.id}" />
-		</c:url>
 		Quantity <input type="text" name="quantity">
-		<button type="submit" value="${checkout}">Add to Cart</button>
+		<button type="submit" name="command" value="addToCart">Add to Cart</button>
 	</form>
+	
+	<a href="search-view.jsp">Back</a>
+	
 
 </body>
 </html>

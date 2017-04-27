@@ -6,21 +6,33 @@
 	<head lang="en"><meta charset="UTF-8"></head>
 <body>
 	
-	<table>
-		<tr>
-			<th>Movie</th>
-			<th>Quantity</th>
-		</tr>
+	<form action="FabflixControllerServlet" method="GET">
+		<table>
+			<tr>
+				<th>Movie</th>
+				<th>Quantity</th>
+			</tr>
 		
-	<c:forEach var="m" items="${SHOPPING_CART}">
-		<tr>
-			<td> ${m.title} </td>
-			<td> ${m.quantity} </td>
-		</tr>
-	</c:forEach>
+			<c:forEach var="m" items="${SHOPPING_CART}">	
+				<tr>	
+					<td> ${m.title} </td>
+					<td>						
+						<input type="text" name="${m.id}" value="${m.quantity}">
+					</td>		
+				</tr>
+				
+			</c:forEach>
+		
+		</table>
+		
+		<button type="submit" name="command" value="update">Update</button>
+	</form>
 	
-	</table>
-
+	<form action="checkout-view.jsp" method="GET">
+		<button type="submit" name="command" value="linkToJsp">Proceed to Checkout</button>
+	</form>
+	
+	<a href="search-view.jsp">Continue Shopping</a>
 
 
 </body>

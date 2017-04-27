@@ -54,6 +54,7 @@
 	
 	<br></br>
 	<a href="checkout-view.jsp">Proceed to Checkout</a>
+	<a href="shopping-cart-view.jsp">Shopping Cart</a>
 
 	<form action="FabflixControllerServlet" method="GET">
 		<table>

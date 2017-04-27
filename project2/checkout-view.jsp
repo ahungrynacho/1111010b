@@ -1,4 +1,5 @@
-<%@ page import="java.util.*, project2.*"%>
+<%@page import="java.util.*, project2.*"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <!DOCTYPE html>
 <html>
 	<title>Checkout</title>
@@ -34,6 +35,12 @@
 				</tr>
 			</tbody>
 		</table>
+		
 	</form>
+	
+	<c:if test="${FAIL}">
+		Credit card declined! Please try again!
+	</c:if>
+	
 </body>	
 </html>

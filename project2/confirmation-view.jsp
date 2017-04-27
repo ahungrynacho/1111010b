@@ -8,15 +8,8 @@
 
 <body>
 
-	<c:choose>
-		<c:when test="${SUCCESS}">
-			Credit card approved!
-		</c:when>
-		
-		<c:otherwise>
-			Credit card declined!
-		</c:otherwise>
-	</c:choose>
+	Transaction complete! Credit card approved!
+	<a href="search-view.jsp">Back to Home</a>
 	
 </body>
 </html>
