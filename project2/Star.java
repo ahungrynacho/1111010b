@@ -1,4 +1,7 @@
+// Brian Huynh, Daniel Nguyen
 package project2;
+
+import java.util.List;
 
 public class Star {
 	
@@ -7,14 +10,38 @@ public class Star {
 	private String lastName;
 	private String dob;
 	private String photoUrl;
+	private List<Movie> movies;
 	
-	public Star(int id, String firstName, String lastName, String dob, String photoUrl) {
+	public Star(int id, String firstName, String lastName, 
+			String dob, String photoUrl, List<Movie> movies) {
 
 		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.dob = dob;
 		this.photoUrl = photoUrl;
+		this.movies = movies;
+	}
+	
+	public Star(int id, String firstName, String lastName, 
+			String dob, String photoUrl) {
+
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.dob = dob;
+		this.photoUrl = photoUrl;
+
+	}
+
+	public Star() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public Star(int id, String firstName, String lastName) {
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
 	}
 
 	public int getId() {
@@ -55,6 +82,14 @@ public class Star {
 
 	public void setPhotoUrl(String photoUrl) {
 		this.photoUrl = photoUrl;
+	}
+
+	public List<Movie> getMovies() {
+		return movies;
+	}
+
+	public void setMovies(List<Movie> movies) {
+		this.movies = movies;
 	}
 	
 	

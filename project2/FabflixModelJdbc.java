@@ -1,5 +1,7 @@
+// Brian Huynh
 package project2;
 import java.sql.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Matcher;
@@ -65,7 +67,7 @@ public class FabflixModelJdbc {
 					+ "FROM movies m, stars s, stars_in_movies sim "
 					+ "WHERE ";
 			
-			ArrayList<String> subqueries = new ArrayList<String>(Arrays.asList(
+			List<String> subqueries = new ArrayList<String>(Arrays.asList(
 					"m.title LIKE",
 					"m.year =",
 					"m.director LIKE",
@@ -73,7 +75,7 @@ public class FabflixModelJdbc {
 					"s.id = sim.star_id AND m.id = sim.movie_id AND s.last_name LIKE"
 					));
 
-			ArrayList<String> result = new ArrayList<String>();
+			List<String> result = new ArrayList<String>();
 			
 			String[] words = stripSpaces(keywords);
 			for (String q : subqueries) {
@@ -177,7 +179,7 @@ public class FabflixModelJdbc {
 		return query;
 	}
 	
-	private ArrayList<Genre> movieGenres(int movieId) throws Exception {
+	private List<Genre> movieGenres(int movieId) throws Exception {
 		/* 
 		 * Returns a list of Genre objects corresponding to the movie
 		 * queried by its movieId. 
@@ -185,7 +187,7 @@ public class FabflixModelJdbc {
 		Connection connection = null;
 		Statement statement = null;
 		ResultSet result = null;
-		ArrayList<Genre> genres = new ArrayList<Genre>();
+		List<Genre> genres = new ArrayList<Genre>();
 		
 		try {
 			connection = dataSource.getConnection();
@@ -209,13 +211,42 @@ public class FabflixModelJdbc {
 		return genres;
 	}
 	
-	private ArrayList<Star> movieStars(int movieId) throws Exception {
+	private List<Movie> starringIn(int starId) throws Exception {
+		List<Movie> movies = new ArrayList<Movie>();
+		Connection connection = null;
+		Statement statement = null;
+		ResultSet result = null;
+		
+		try {
+			connection = dataSource.getConnection();
+			statement = connection.createStatement();
+			String query = String.format("SELECT m.id, m.title, m.year, m.director, "
+										+ "m.banner_url, m.trailer_url "
+										+ "FROM movies m, stars_in_movies sim "
+										+ "WHERE m.id = sim.movie_id "
+										+ "AND sim.star_id = %d", starId);
+			
+			result = statement.executeQuery(query);
+			while (result.next()) {
+				movies.add(new Movie(result.getInt("id"), 
+									result.getString("title"))
+									);
+				
+			}
+		} finally {
+			close(connection, statement, result);
+		}
+		
+		return movies;
+	}
+	
+	private List<Star> movieStars(int movieId) throws Exception {
 		/*
 		 * Returns a list of Star objects corresponding to the movie 
 		 * queried by its movieId.
 		 */
 		
-		ArrayList<Star> stars = new ArrayList<Star>();
+		List<Star> stars = new ArrayList<Star>();
 		Connection connection = null;
 		Statement statement = null;
 		ResultSet result = null;
@@ -232,11 +263,13 @@ public class FabflixModelJdbc {
 			result = statement.executeQuery(query);
 			
 			while (result.next()) {
-				stars.add(new Star(result.getInt("id"),
+				int starId = result.getInt("id");
+				stars.add(new Star(starId,
 						result.getString("first_name"), 
 						result.getString("last_name"), 
 						result.getString("dob"), 
-						result.getString("photo_url"))
+						result.getString("photo_url"),
+						starringIn(starId))
 						);
 				
 			}
@@ -248,10 +281,10 @@ public class FabflixModelJdbc {
 		return stars;
 	}
 	
-	private ArrayList<Movie> movieList(ResultSet result) throws Exception {
+	private List<Movie> movieList(ResultSet result) throws Exception {
 		/* Helper function populating a list of movies returned from a query. */
 		
-		ArrayList<Movie> movies = new ArrayList<Movie>();
+		List<Movie> movies = new ArrayList<Movie>();
 		while (result.next()) {
 			int movieId = result.getInt("id");
 			movies.add(new Movie(movieId, 
@@ -267,7 +300,7 @@ public class FabflixModelJdbc {
 		return movies;
 	}
 	
-	public ArrayList<Movie> moviesByKeywords(String keywords) throws Exception {
+	public List<Movie> moviesByKeywords(String keywords) throws Exception {
 		
 		/* 
 		 * Establishes an individual connection to the database 
@@ -295,7 +328,7 @@ public class FabflixModelJdbc {
 		return null;
 	}
 	
-	public ArrayList<Movie> searchMovies(String title, String year, 
+	public List<Movie> searchMovies(String title, String year, 
 			String director, String firstName, String lastName) throws Exception {
 		
 		/* 
@@ -341,7 +374,7 @@ public class FabflixModelJdbc {
 		String query = String.format("SELECT cc.first_name, cc.last_name "
 				+ "FROM creditcards cc, customers cust "
 				+ "WHERE cc.first_name = '%s' AND cc.last_name = '%s' "
-				+ "AND cc.id = '%s' AND cc.expiration = '%s' AND cc.id = cust.cc_id", 
+				+ "AND cc.id = '%s' AND cc.expiration = '%s'", 
 				firstName, lastName, ccid, expDate);
 		try {
 			connection = dataSource.getConnection();
@@ -393,7 +426,7 @@ public class FabflixModelJdbc {
 	}
 
 	public Customer login(String email, String password) throws Exception {
-		/* Temporarily implemented login function that returns a Customer object. */
+		/* Implemented login function that returns a Customer object. */
 		
 		Connection connection = null;
 		Statement statement = null;
@@ -405,8 +438,9 @@ public class FabflixModelJdbc {
 		
 		try {
 			String query = String.format("SELECT * "
-					+ "FROM customers c "
-					+ "WHERE c.email = '%s' AND c.password = '%s'", email, password);
+										+ "FROM customers c "
+										+ "WHERE c.email = '%s' AND c.password = '%s'", 
+										email, password);
 			
 			connection = dataSource.getConnection();
 			statement = connection.createStatement();

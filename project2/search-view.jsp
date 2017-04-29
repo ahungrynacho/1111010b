@@ -9,10 +9,11 @@
 
 <body>
 
-	<form action="FabflixControllerServlet" method="GET">		
+	<form action="FabflixControllerServlet" method="GET">
+		<input type="hidden" name="method" value="search">		
 		<table>
 			<tbody>
-			
+				
 				<tr>
 					<td><label>Title </label></td>
 					<td><input type="text" name="title" /></td>
@@ -48,6 +49,7 @@
 	
 	<br></br>
 	<form action="FabflixControllerServlet" method="GET">
+		<input type="hidden" name="method" value="search">
 		General Search <input type="text" name="keywords"/>
 		<button type="submit" name="command" value="searchByKeywords">Search</button>
 	</form>
@@ -56,6 +58,7 @@
 	<a href="checkout-view.jsp">Proceed to Checkout</a>
 	<a href="shopping-cart-view.jsp">Shopping Cart</a>
 
+<%-- 
 	<form action="FabflixControllerServlet" method="GET">
 		<table>
 			<tr>
@@ -67,7 +70,7 @@
 				<th>Movie Stars</th>
 			</tr>
 			
-			<c:forEach var="m" items="${MOVIES}">
+			<c:forEach var="m" items="${MOVIE_LIST}">
 				<!-- set up a link for each movie -->
 				<c:url var="movieLink" value="FabflixControllerServlet">
 					<c:param name="command" value="linkToMovie" />
@@ -105,7 +108,7 @@
  		
 		</table>
 	</form>
-
+--%>
 </body>
 </html>
 

@@ -9,6 +9,7 @@
 <body>
 
 	Transaction complete! Credit card approved!
+	<a href="shopping-cart-view.jsp">Shopping Cart</a>
 	<a href="search-view.jsp">Back to Home</a>
 	
 </body>

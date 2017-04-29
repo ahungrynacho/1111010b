@@ -1,8 +1,11 @@
+// Brian Huynh
 package project2;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
+import java.time.format.DateTimeFormatter;
 
 import javax.annotation.Resource;
 import javax.servlet.RequestDispatcher;
@@ -25,9 +28,9 @@ public class FabflixControllerServlet extends HttpServlet {
 	@Resource(name="jdbc/moviedb") 		// Critical for connecting the SQL database and tomcat in eclipse.
 	private DataSource dataSource;
 	
-	private ArrayList<Movie> movies;
+	private List<Movie> movies;
 	private Movie currentMovie;
-	private ArrayList<Movie> shoppingCart;
+	private List<Movie> shoppingCart;
 	private Customer customer;
 	private HttpSession session;
 	
@@ -48,6 +51,14 @@ public class FabflixControllerServlet extends HttpServlet {
 		}
 	}
 	
+	private void initLoginPage(HttpServletRequest request, 
+			HttpServletResponse response) throws Exception {
+		/* Upon server startup, redirects user to the login page. */
+		
+		RequestDispatcher dispatcher = request.getRequestDispatcher("login.jsp");
+		dispatcher.forward(request, response);
+	}
+	
 	private void login(HttpServletRequest request, 
 					HttpServletResponse response) throws Exception {
 		/* Temporarily implemented login function. */
@@ -55,21 +66,25 @@ public class FabflixControllerServlet extends HttpServlet {
 		String email = request.getParameter("email");
 		String password = request.getParameter("password");
 		this.customer = database.login(email, password);
-		session.setAttribute("CUSTOMER", this.customer);
 		
-		// TODO: where to redirect page, if needed at all?
-		RequestDispatcher dispatcher = request.getRequestDispatcher("main-page-view.jsp");
-		dispatcher.forward(request, response);
+		if(this.customer != null)
+		{
+			//maintain session id and store it somewhere
+			//replace validation.jsp to the next real state (main page)
+			session.setAttribute("CUSTOMER", this.customer);
+			session.setAttribute("MOVIES_FROM_QUERY", this.movies);
+			session.setAttribute("SHOPPING_CART", this.shoppingCart);
+			
+			RequestDispatcher dispatcher =  request.getRequestDispatcher("main-page.jsp");
+			dispatcher.forward(request, response);
+		}
+		else
+		{
+			request.setAttribute("FAIL", true);
+			RequestDispatcher dispatcher =  request.getRequestDispatcher("login.jsp");
+			dispatcher.forward(request, response);	
+		}
 		
-	}
-	
-	private void listMovies(HttpServletRequest request, 
-							HttpServletResponse response) throws Exception {
-		/* Sends the currently cached list of movies to the jsp. */
-		
-		session.setAttribute("MOVIES", this.movies);
-		RequestDispatcher dispatcher = request.getRequestDispatcher("/search-view.jsp");
-		dispatcher.forward(request, response);
 	}
 	
 	private void searchMovies(HttpServletRequest request, 
@@ -91,8 +106,8 @@ public class FabflixControllerServlet extends HttpServlet {
 											director, firstName, 
 											lastName);
 		
-		session.setAttribute("MOVIES", this.movies);
-		RequestDispatcher dispatcher = request.getRequestDispatcher("/search-view.jsp");
+		session.setAttribute("MOVIES_FROM_SEARCH", this.movies);
+		RequestDispatcher dispatcher = request.getRequestDispatcher("MovieListServlet");
 		dispatcher.forward(request, response);
 
 	}
@@ -106,18 +121,15 @@ public class FabflixControllerServlet extends HttpServlet {
 		 */
 		String keywords = request.getParameter("keywords");
 		this.movies = database.moviesByKeywords(keywords);
-		session.setAttribute("MOVIES", this.movies);
+		session.setAttribute("MOVIES_FROM_SEARCH", this.movies);
 		RequestDispatcher dispatcher = request.getRequestDispatcher("/search-view.jsp");
 		dispatcher.forward(request, response);
 	}
 	
-	private String currentDate() {
+	public static String currentDate() {
 		/* Converts java's current date to sql's date format. */
-		
-		int day = LocalDateTime.now().getDayOfMonth();
-		int month = LocalDateTime.now().getMonthValue();
-		int year = LocalDateTime.now().getYear();
-		return String.format("'%d/%d/%d'", year, month, day);
+		String javaDate = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+		return javaDate.replace("-", "/");
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -135,7 +147,7 @@ public class FabflixControllerServlet extends HttpServlet {
 		String ccid = request.getParameter("ccid");
 		String expDate = request.getParameter("expDate");
 		
-		this.shoppingCart = (ArrayList<Movie>) session.getAttribute("SHOPPING_CART");
+		this.shoppingCart = (List<Movie>) session.getAttribute("SHOPPING_CART");
 		RequestDispatcher dispatcher = null;
 		
 		if (database.processPayment(firstName, lastName, ccid, expDate) && 
@@ -146,7 +158,7 @@ public class FabflixControllerServlet extends HttpServlet {
 			 * the customer login information has 
 			 * not been recorded yet in the session. */
 			
-			// Customer customer = (Customer) session.getAttribute("CUSTOMER");
+			Customer customer = (Customer) session.getAttribute("CUSTOMER");
 			for (Movie m : this.shoppingCart) {
 				database.addSale(customer.getId(), m.getId(), currentDate());
 			}
@@ -162,43 +174,37 @@ public class FabflixControllerServlet extends HttpServlet {
 		
 
 	}
-
-	private void linkToMovie(HttpServletRequest request, 
-							HttpServletResponse response) throws Exception {
-		
-		/* 
-		 * Sets the movie session attribute to a Movie object currently being
-		 * viewed in the single movie page.
-		 */
-		String movieId = request.getParameter("movieId");
-		this.currentMovie = database.getMovie(movieId);
-		
-		if (this.currentMovie != null) {
-			session.setAttribute("MOVIE", this.currentMovie);
-			RequestDispatcher dispatcher = request.getRequestDispatcher("movie-view.jsp");
-			dispatcher.forward(request, response);
-		}
-		
-	}
 	
+	@SuppressWarnings("unchecked")
 	private void addToCart(HttpServletRequest request, 
 							HttpServletResponse response) throws Exception {
 		/* Adds a movie to the shopping cart with the user-specified quantity. */
-		
+
+		this.shoppingCart = (List<Movie>) session.getAttribute("SHOPPING_CART");
 		String quantity = request.getParameter("quantity");
-		this.currentMovie = (Movie) session.getAttribute("MOVIE");
+//		this.currentMovie = (Movie) session.getAttribute("MOVIE");
 		
-		if (quantity != null && Integer.parseInt(quantity) > 0 
-				&& this.currentMovie != null) {
-			
-			this.currentMovie.setQuantity(Integer.parseInt(quantity));
-			this.shoppingCart.add(this.currentMovie);
+		if (quantity == null) {
+			// button clicked from movie list
+			String movieId = (String) request.getParameter("movieId");
+			Movie movie = database.getMovie(movieId);
+			movie.setQuantity(1);
+			this.shoppingCart.add(movie);
 			session.setAttribute("SHOPPING_CART", this.shoppingCart);
 			
 			RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
-			dispatcher.forward(request, response);
-			
+			dispatcher.forward(request, response);			
 		}
+//		else if (Integer.parseInt(quantity) > 0 ) {
+//			// button clicked from single-movie page
+//			
+//			this.currentMovie.setQuantity(Integer.parseInt(quantity));
+//			this.shoppingCart.add(this.currentMovie);
+//			session.setAttribute("SHOPPING_CART", this.shoppingCart);
+//			
+//			RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
+//			dispatcher.forward(request, response);
+//		}
 		
 	}
 	
@@ -210,8 +216,8 @@ public class FabflixControllerServlet extends HttpServlet {
 		 * the new quantity from the user's input. A quantity of 0 removes movies
 		 * from the shopping cart.
 		 */
-		this.shoppingCart = (ArrayList<Movie>) session.getAttribute("SHOPPING_CART");
-		ArrayList<Movie> toRemove = new ArrayList<Movie>();
+		this.shoppingCart = (List<Movie>) session.getAttribute("SHOPPING_CART");
+		List<Movie> toRemove = new ArrayList<Movie>();
 		
 		for (Movie m : this.shoppingCart) {
 			String movieId = Integer.toString(m.getId());
@@ -241,13 +247,13 @@ public class FabflixControllerServlet extends HttpServlet {
 		String command = request.getParameter("command");
 		
 		if (command == null)
-			command = "listMovies";
+			command = "initLoginPage";
 		
 		try {
 			switch(command) {
 			
-			case "listMovies":
-				listMovies(request, response);
+			case "initLoginPage":
+				initLoginPage(request, response);
 				break;
 			
 			case "searchByFields":
@@ -256,10 +262,6 @@ public class FabflixControllerServlet extends HttpServlet {
 				
 			case "searchByKeywords":
 				searchByKeywords(request, response);
-				break;
-				
-			case "linkToMovie":
-				linkToMovie(request, response);
 				break;
 				
 			case "addToCart":
@@ -278,7 +280,7 @@ public class FabflixControllerServlet extends HttpServlet {
 			}
 			
 		} catch (Exception e) {
-			throw new ServletException();
+			e.printStackTrace();
 		}
 		
 	}
@@ -306,10 +308,9 @@ public class FabflixControllerServlet extends HttpServlet {
 			}
 				
 		} catch (Exception e) {
-			throw new ServletException(e);
+			e.printStackTrace();
 		}
 	}
 
-	
 }
 

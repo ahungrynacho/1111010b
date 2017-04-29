@@ -1,3 +1,4 @@
+// Brian Huynh
 package project2;
 
 public class Sale {

@@ -1,6 +1,7 @@
+// Brian Huynh, Daniel Nguyen
 package project2;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class Movie {
 	private int id;
@@ -9,12 +10,13 @@ public class Movie {
 	private String director;
 	private String bannerUrl;
 	private String trailerUrl;
-	private ArrayList<Genre> genres;
-	private ArrayList<Star> stars;
+	private List<Genre> genres;
+	private List<Star> stars;
 	private int quantity = 0;		// number of movies purchased
 	
 	public Movie(int id, String title, int year, 
-			String director, String bannerUrl, String trailerUrl, ArrayList<Genre> genres, ArrayList<Star> stars) {
+				String director, String bannerUrl, String trailerUrl, 
+				List<Genre> genres, List<Star> stars) {
 		
 		this.id = id;
 		this.title = title;
@@ -26,6 +28,28 @@ public class Movie {
 		this.stars = stars;
 
 	}
+
+	public Movie(int id, String title, String director, int year, 
+				List<Genre> genres, List<Star> stars) {
+		
+		this.id = id;
+		this.title = title;
+		this.director = director;
+		this.year = year;
+		this.genres = genres;
+		this.stars = stars;
+		
+	}
+	public Movie(int id, String title) {
+		this.id = id;
+		this.title = title;
+	}
+
+	public Movie() {
+		
+	}
+
+
 
 	public int getId() {
 		return id;
@@ -75,19 +99,19 @@ public class Movie {
 		this.trailerUrl = trailerUrl;
 	}
 
-	public ArrayList<Genre> getGenres() {
+	public List<Genre> getGenres() {
 		return genres;
 	}
 
-	public void setGenres(ArrayList<Genre> genres) {
+	public void setGenres(List<Genre> genres) {
 		this.genres = genres;
 	}
 
-	public ArrayList<Star> getstars() {
+	public List<Star> getstars() {
 		return stars;
 	}
 
-	public void setstars(ArrayList<Star> stars) {
+	public void setstars(List<Star> stars) {
 		this.stars = stars;
 	}
 
