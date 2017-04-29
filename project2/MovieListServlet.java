@@ -1,6 +1,7 @@
 package project2;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -50,12 +51,17 @@ public class MovieListServlet extends HttpServlet {
 
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		try {
-			listMovies(request, response);	
+			try {
+				listMovies(request, response);
+			} catch (SQLException e) {
+				// clicking on the "continue shopping" link when the list of movies is empty
+				RequestDispatcher dispatcher =  request.getRequestDispatcher("/movie-list.jsp");
+				dispatcher.forward(request, response);
+			}
 		}
-		catch (Exception exc) {
-			throw new ServletException(exc);
+		catch (Exception e) {
+			throw new ServletException(e);
 		}
 	}
 
@@ -249,7 +255,7 @@ public class MovieListServlet extends HttpServlet {
 		request.setAttribute("MOVIES_PER_PAGE", newMovieList);
 		request.setAttribute("maxPage", maxPage);
 		RequestDispatcher dispatcher =  request.getRequestDispatcher("/movie-list.jsp");
-				dispatcher.forward(request, response);
+		dispatcher.forward(request, response);
 				
 	}
 

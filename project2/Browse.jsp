@@ -6,6 +6,13 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Browse</title>
 </head>
+
+ 
+<body>
+	<a href="main-page.jsp">Home</a>
+	<a href="shopping-cart-view.jsp">Shopping Cart</a>
+	<a href="checkout-view.jsp">Checkout</a>
+	
   <form action="MovieListServlet" method="GET">
   		<input type="hidden" name="method" value="browse">
   		Browse by Title
@@ -96,8 +103,7 @@
 		  </select>
 	  <input type="submit" value="Go" />
 	</form>
- 
-<body>
+
 
 </body>
 </html>

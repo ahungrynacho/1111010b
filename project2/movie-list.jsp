@@ -41,10 +41,17 @@
 		<input type = "submit" value = "Sort" />
 </form>
 
-<form action= main-page.jsp method= "GET">		
-		<input type = "submit" value = "Home" />
-</form>
+<br></br>
 
+
+
+<br></br>
+
+	<a href="main-page.jsp">Home</a>
+	<a href="shopping-cart-view.jsp">Shopping Cart</a>
+	<a href="checkout-view.jsp">Checkout</a>
+
+<br></br>
 
 	<div id="container">
 		<div id="content">

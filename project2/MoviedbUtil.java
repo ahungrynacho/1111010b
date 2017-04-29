@@ -1,7 +1,6 @@
 package project2;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +11,7 @@ public class MoviedbUtil {
 	private DataSource dataSource;
 	
 	public MoviedbUtil(DataSource theDataSource) {
-		dataSource = theDataSource;
-		
+		dataSource = theDataSource;	
 	}
 	
 	public List<Movie> getMovies(String sort, String order, Integer limit, int page,
@@ -26,8 +24,6 @@ public class MoviedbUtil {
 		Statement myStmt = null;
 		ResultSet myRs = null;
 		String nextTitle= "";
-		String fullStarName = "";
-		int starId;
 		String sql = "";
 		List<Genre> genres = new ArrayList<Genre>();
 		List<Star> star = new ArrayList<Star>();
@@ -63,14 +59,6 @@ public class MoviedbUtil {
 					+ "and gim.movie_id = m.id and (g.name = '%s)",browseGenre);
 			}
 			
-//			else {
-//				sql = String.format("select m.id, m.title, m.year, m.director, s.first_name,"
-//						+ "s.last_name, s.id AS s_Id, g.name, g.id AS gID from movies m, genres_in_movies gim, stars s,"
-//						+ " stars_in_movies sim, genres g where "
-//						+ "sim.star_id = s.id and sim.movie_id = m.id and g.id = gim.genre_id "
-//						+ "and gim.movie_id = m.id");
-//			}
-			
 			if(browseTitle!=null){
 				browseTitle = browseTitle.concat("%'");
 				sql = "select m.id, m.title, m.year, m.director, s.first_name,"
@@ -79,50 +67,12 @@ public class MoviedbUtil {
 						+ "sim.star_id = s.id and sim.movie_id = m.id and g.id = gim.genre_id "
 						+ "and gim.movie_id = m.id and m.title LIKE '" + browseTitle;
 			}
-			
-			
-			
-//			if (sort!=null && order!=null) {
-//				if (sort.equals("Year")) {
-//					sql = sql.concat(" order by m.year");
-//				}
-//			
-//				
-//				if (sort.equals("Title")) {
-//					sql = sql.concat(" order by m.title");
-//				}
-//				
-//				if (order.equals("ASC")) {
-//					sql = sql.concat(" ASC");
-//				}
-//				
-//				if (order.equals("DESC")) {
-//					sql = sql.concat(" DESC");
-//				}
-//				
-//			}
-//			else {
-//				sql = sql.concat(" order by m.title ASC");
-//			}
-//			
-//			if(limit!=null) {
-//			}
-//			else {
-//				sql = sql.concat(" limit 10");
-//			}
-			// create sql statement
-//			String sql = "select m.id, m.title, m.year, m.director, s.first_name,"
-//					+ "s.last_name, s.id AS s_Id, g.name, g.id AS gID from movies m, genres_in_movies gim, stars s,"
-//					+ " stars_in_movies sim, genres g where "
-//					+ "(sim.star_id = s.id and sim.movie_id = m.id and g.id = gim.genre_id "
-//					+ "and gim.movie_id = m.id)";
-			
+					
 			myStmt = myConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
 			        ResultSet.CONCUR_READ_ONLY);
 			
 			// execute query
 			myRs = myStmt.executeQuery(sql);
-//			ResultSet nextRs = myStmt.executeQuery(sql);
 			
 			// process result set
 			while (myRs.next()) {
@@ -147,7 +97,6 @@ public class MoviedbUtil {
 				int genreId = myRs.getInt("gID");
 				String firstName = myRs.getString("first_name");
 				String lastName = myRs.getString("last_name");
-				fullStarName = firstName + " " + lastName;
 				
 				if(!tempStarId.contains(sId)) {
 					Star tempStar = new Star(sId, firstName, lastName);
@@ -164,25 +113,16 @@ public class MoviedbUtil {
 					
 			// create new student object
 				if(!title.equals(nextTitle)){
-//					Movie tempMovie = new Movie(id, title, director, year, fullStarName, genreList);
 					Movie tempMovie = new Movie(id, title, director, year, genres, star);
 					
 					// add it to the list of students
 					movies.add(tempMovie);	
-					fullStarName  = "";
 					tempStarId = new ArrayList<Integer>();
 					genreList = new ArrayList<String>();
 					star = new ArrayList<Star>();
 					genres = new ArrayList<Genre>();
 				}
 			}
-////			This commented out part moved to MovieListServlet.
-//			List<Movie> newMovieList = new ArrayList<Movie>();
-//			int offset = (page - 1) * limit;
-//			for(int i = 0; i < limit && i < movies.size(); i++) {
-//				newMovieList.add(movies.get(offset));
-//				offset++;
-//			}
 			
 			return movies;		
 		}
@@ -199,7 +139,6 @@ public class MoviedbUtil {
 		Statement myStmt = null;
 		ResultSet myRs = null;
 		String nextTitle= "";
-		String fullStarName = "";
 
 		List<Genre> genres = new ArrayList<Genre>();
 		List<Star> star = new ArrayList<Star>();
@@ -249,8 +188,6 @@ public class MoviedbUtil {
 					String banner_url = myRs.getString("banner_url");
 					String trailer_url = myRs.getString("trailer_url");
 					
-					
-					fullStarName = firstName + " " + lastName;
 					if(!tempStarId.contains(sId)) {
 						Star tempStar = new Star(sId, firstName, lastName);
 						star.add(tempStar);
@@ -267,12 +204,8 @@ public class MoviedbUtil {
 						
 				// create new student object
 					if(!title.equals(nextTitle)){
-//						Movie tempMovie = new Movie(id, title, director, year, fullStarName, genreList);
-						 singleMovie = new Movie(id, title, year, director, banner_url, trailer_url, genres, star);
-//						 singleMovie = new Movie(124, "jlj", "asdas", 11,"9999", "901", star, genreList);
-						
-						// add it to the list of students
-						fullStarName  = "";
+						singleMovie = new Movie(id, title, year, director, banner_url, trailer_url, genres, star);
+
 						star = new ArrayList<Star>();
 						genres = new ArrayList<Genre>();
 						genreList = new ArrayList<String>();
@@ -298,20 +231,15 @@ public Star getSingleStar(String starId) throws Exception {
 		Statement myStmt = null;
 		ResultSet myRs = null;
 		String nextTitle= "";
-		String fullStarName = "";
 
-		List<Genre> genres = new ArrayList<Genre>();
 		List<Movie> movie = new ArrayList<Movie>();
 		List<String> titleList = new ArrayList<String>();
-		List<Integer> movieIdList = new ArrayList<Integer>();
 		
 		try {
 			// get a connection
 			myConn = dataSource.getConnection();
 
-			// create sql statement
-		
-			
+			// create sql statement	
 			String sql =String.format("select s.id, s.dob, s.first_name, s.last_name, s.photo_url, m.id AS m_Id, m.title "
 					+ "from movies m, stars s, stars_in_movies sim "
 					+ "where sim.star_id = s.id and sim.movie_id = m.id and s.id = '%s'",starId);
@@ -341,7 +269,6 @@ public Star getSingleStar(String starId) throws Exception {
 					String lastName = myRs.getString("last_name");
 					String dob = myRs.getString("dob");
 					String photoUrl = myRs.getString("photo_url");
-					fullStarName = firstName + " " + lastName; 	
 					
 					if(!titleList.contains(title)) {
 						titleList.add(title);
@@ -351,18 +278,13 @@ public Star getSingleStar(String starId) throws Exception {
 					
 				// create new student object
 					if(!title.equals(nextTitle)){
-//						Movie tempMovie = new Movie(id, title, director, year, fullStarName, genreList);
 						 star = new Star(id, firstName, lastName, dob, photoUrl, movie);
-//						 singleMovie = new Movie(124, "jlj", "asdas", 11,"9999", "901", star, genreList);
 						
 						// add it to the list of students
 						
 					}
 				}
-			
-			
-			
-			
+
 			return star;
 		}
 			finally {

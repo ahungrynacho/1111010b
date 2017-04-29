@@ -1,3 +1,4 @@
+<%-- 
 <%@page import="java.util.*, project2.*"%>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <!DOCTYPE html>
@@ -33,7 +34,6 @@
 	</form>
 	
 	<a href="search-view.jsp">Back</a>
-	
-
 </body>
 </html>
+--%>

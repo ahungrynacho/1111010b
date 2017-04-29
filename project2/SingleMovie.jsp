@@ -11,9 +11,15 @@
 	<link type="text/css" rel="stylesheet" href="css/style.css">
 </head>
 
+<body>
+
+	<a href="main-page.jsp">Home</a>
+	<a href="shopping-cart-view.jsp">Shopping Cart</a>
+	<a href="checkout-view.jsp">Checkout</a>
+	
  <div id="wrapper">
 		<div id="header">
-			<h2>Movie List</h2>
+			<h1>${MOVIE.title}</h1>
 		</div>
 	</div>
 
@@ -67,11 +73,18 @@
 			</table>
 		</div>
 	</div>
-<body>
+
 	<form action="FabflixControllerServlet" method="GET">
 		Quantity <input type="text" name="quantity" value="1">
+		<input type="hidden" name="movieId" value="${MOVIE.id}">
 		<button type="submit" name="command" value="addToCart">Add to Cart</button>
 	</form>
+
+	<c:if test="${ERROR_MSG}">
+		<b>Invalid Quantity!</b>
+	</c:if>	
+	
+	<br></br>
 	
 	<a href="MovieListServlet">Back</a>
 

@@ -489,5 +489,39 @@ public class FabflixModelJdbc {
 		return newRecords;
 	}
 	
+	public List<Sale> getSales(int customerId) throws Exception {
+		/* Returns a list of movies bought by a customer. */
+		
+		List<Sale> sales = new ArrayList<Sale>();
+		Connection connection = null;
+		Statement statement = null;
+		ResultSet result = null;
+		
+		try {
+			String query = String.format("SELECT * "
+										+ "FROM sales s "
+										+ "WHERE s.customer_id = %d "
+										+ "ORDER BY s.sale_date DESC", customerId);
+			
+			connection = dataSource.getConnection();
+			statement = connection.createStatement();
+			result = statement.executeQuery(query);
+			
+			while (result.next()) {
+				sales.add(new Sale(result.getInt("id"),
+									result.getInt("customer_id"),
+									result.getInt("movie_id"),
+									result.getString("sale_date"))
+							);
+			}
+			
+			return sales;
+			
+		} finally {
+			close(connection, statement, result);
+		}
+		
+	}
+	
 
 }

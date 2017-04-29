@@ -5,6 +5,11 @@
 	<title>Shopping Cart</title>
 	<head lang="en"><meta charset="UTF-8"></head>
 <body>
+
+	<a href="main-page.jsp">Home</a>
+	<a href="MovieListServlet">Continue Shopping</a>
+	
+	<h1>Shopping Cart</h1>
 	
 	<form action="FabflixControllerServlet" method="GET">
 		<table>
@@ -29,11 +34,9 @@
 	</form>
 	
 	<form action="checkout-view.jsp" method="GET">
-		<button type="submit" name="command" value="linkToJsp">Proceed to Checkout</button>
+		<button type="submit">Proceed to Checkout</button>
 	</form>
 	
-	<a href="search-view.jsp">Continue Shopping</a>
-
 
 </body>
 </html>

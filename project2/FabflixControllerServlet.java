@@ -29,7 +29,6 @@ public class FabflixControllerServlet extends HttpServlet {
 	private DataSource dataSource;
 	
 	private List<Movie> movies;
-	private Movie currentMovie;
 	private List<Movie> shoppingCart;
 	private Customer customer;
 	private HttpSession session;
@@ -41,7 +40,6 @@ public class FabflixControllerServlet extends HttpServlet {
 		try {
 			this.database = new FabflixModelJdbc(dataSource);
 			this.movies = new ArrayList<Movie>();
-			this.currentMovie = null;
 			this.shoppingCart = new ArrayList<Movie>();
 			this.customer = null;
 			this.session = null;
@@ -132,6 +130,7 @@ public class FabflixControllerServlet extends HttpServlet {
 		return javaDate.replace("-", "/");
 	}
 	
+	
 	@SuppressWarnings("unchecked")
 	private void processPayment(HttpServletRequest request, 
 								HttpServletResponse response) throws Exception {
@@ -150,24 +149,28 @@ public class FabflixControllerServlet extends HttpServlet {
 		this.shoppingCart = (List<Movie>) session.getAttribute("SHOPPING_CART");
 		RequestDispatcher dispatcher = null;
 		
-		if (database.processPayment(firstName, lastName, ccid, expDate) && 
-				this.shoppingCart != null) {
-			
-			
-			/* NullPointerException thrown because 
-			 * the customer login information has 
-			 * not been recorded yet in the session. */
+		if (this.shoppingCart != null && this.shoppingCart.size() == 0) {
+			request.setAttribute("EMPTY_CART", true);
+			dispatcher = request.getRequestDispatcher("/checkout-view.jsp");
+			dispatcher.forward(request, response);
+		}
+		else if (database.processPayment(firstName, lastName, ccid, expDate) && 
+				this.shoppingCart != null && this.shoppingCart.size() > 0) {
 			
 			Customer customer = (Customer) session.getAttribute("CUSTOMER");
 			for (Movie m : this.shoppingCart) {
 				database.addSale(customer.getId(), m.getId(), currentDate());
 			}
+			
+			List<Sale> sales = database.getSales(customer.getId());
+			session.setAttribute("BOUGHT_BY_CUSTOMER", sales);		// transactions made by the logged-in customer
+			
 			dispatcher = request.getRequestDispatcher("/confirmation-view.jsp");
 			dispatcher.forward(request, response);
 			
 		}
 		else {
-			request.setAttribute("FAIL", true);
+			request.setAttribute("DECLINED_CARD", true);
 			dispatcher = request.getRequestDispatcher("/checkout-view.jsp");
 			dispatcher.forward(request, response);
 		}
@@ -182,29 +185,43 @@ public class FabflixControllerServlet extends HttpServlet {
 
 		this.shoppingCart = (List<Movie>) session.getAttribute("SHOPPING_CART");
 		String quantity = request.getParameter("quantity");
-//		this.currentMovie = (Movie) session.getAttribute("MOVIE");
 		
-		if (quantity == null) {
-			// button clicked from movie list
-			String movieId = (String) request.getParameter("movieId");
-			Movie movie = database.getMovie(movieId);
-			movie.setQuantity(1);
-			this.shoppingCart.add(movie);
-			session.setAttribute("SHOPPING_CART", this.shoppingCart);
+		try {
+			if (quantity == null) {
+				// button clicked from movie list
+				
+				String movieId = request.getParameter("movieId");
+				Movie movie = database.getMovie(movieId);
+				movie.setQuantity(1);
+				this.shoppingCart.add(movie);
+				session.setAttribute("SHOPPING_CART", this.shoppingCart);
+				
+				RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
+				dispatcher.forward(request, response);			
+			}
 			
-			RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
-			dispatcher.forward(request, response);			
+			else if (Integer.parseInt(quantity) > 0 ) {
+				// button clicked from single-movie page
+
+				String movieId = request.getParameter("movieId");
+				Movie movie = database.getMovie(movieId);
+				movie.setQuantity(Integer.parseInt(quantity));
+				this.shoppingCart.add(movie);
+				session.setAttribute("SHOPPING_CART", this.shoppingCart);
+				
+				RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
+				dispatcher.forward(request, response);
+			}
+			else {
+				// button clicked from single-movie page, but with invalid input
+				throw new NumberFormatException();
+			}
+		} catch (NumberFormatException e) {
+			// button clicked from single-movie page, but with invalid input
+			request.setAttribute("ERROR_MSG", true);
+			RequestDispatcher dispatcher = request.getRequestDispatcher("SingleMovieServlet");
+			dispatcher.forward(request, response);
 		}
-//		else if (Integer.parseInt(quantity) > 0 ) {
-//			// button clicked from single-movie page
-//			
-//			this.currentMovie.setQuantity(Integer.parseInt(quantity));
-//			this.shoppingCart.add(this.currentMovie);
-//			session.setAttribute("SHOPPING_CART", this.shoppingCart);
-//			
-//			RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
-//			dispatcher.forward(request, response);
-//		}
 		
 	}
 	
@@ -221,6 +238,7 @@ public class FabflixControllerServlet extends HttpServlet {
 		
 		for (Movie m : this.shoppingCart) {
 			String movieId = Integer.toString(m.getId());
+			
 			int quantity = Integer.parseInt(request.getParameter(movieId));
 	
 			if (quantity == 0)
@@ -271,9 +289,6 @@ public class FabflixControllerServlet extends HttpServlet {
 			case "update":
 				updateCart(request, response);
 				break;
-
-			case "linkToJsp":
-				break;		// dummy value for buttons that act like href links
 				
 			default:
 				break;		// do nothing

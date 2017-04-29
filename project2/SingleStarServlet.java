@@ -11,18 +11,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-/**
- * Servlet implementation class SingleStarServlet
- */
 @WebServlet("/SingleStarServlet")
 public class SingleStarServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 	private MoviedbUtil moviedbUtil;
 	@Resource(name="jdbc/moviedb")
 	private DataSource dataSource;
 	
 	@Override
 	public void init() throws ServletException {
-		// TODO Auto-generated method stub
 		super.init();
 		
 		try {
@@ -33,11 +30,9 @@ public class SingleStarServlet extends HttpServlet {
 		}
 	}
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		try {
 			listSingleStar(request,response);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

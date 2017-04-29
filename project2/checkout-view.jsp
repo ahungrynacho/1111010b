@@ -6,6 +6,10 @@
 	<head lang="en"><meta charset="UTF-8"></head>
 
 <body>
+
+	<a href="main-page.jsp">Home</a>
+	<a href="shopping-cart-view.jsp">Shopping Cart</a>
+	
 	<form action="FabflixControllerServlet" method="POST">
 
 		<table>
@@ -35,10 +39,13 @@
 				</tr>
 			</tbody>
 		</table>
-		
 	</form>
+
+	<c:if test="${EMPTY_CART}">
+		Empty shopping cart! Please add a movie!
+	</c:if>
 	
-	<c:if test="${FAIL}">
+	<c:if test="${DECLINED_CARD}">
 		Credit card declined! Please try again!
 	</c:if>
 	

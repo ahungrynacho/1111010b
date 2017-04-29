@@ -3,15 +3,20 @@
 
 <!DOCTYPE html>
 <html>
+<body>
 
-<head>
-	<title>Single Star </title>
+	<a href="main-page.jsp">Home</a>
+	<a href="shopping-cart-view.jsp">Shopping Cart</a>
+	<a href="checkout-view.jsp">Checkout</a>
 	
-	
-	<link type="text/css" rel="stylesheet" href="css/style.css">
-</head>
+	<head>
+		<title>Single Star </title>
+		
+		
+		<link type="text/css" rel="stylesheet" href="css/style.css">
+	</head>
 
- <div id="wrapper">
+	<div id="wrapper">
 		<div id="header">
 			<h2>Star</h2>
 		</div>
@@ -31,23 +36,22 @@
 				</tr>
 				
 				<tr> 
-				<!--  -->
-				<td><img src="${STAR.photoUrl}" width="200" height="200" alt="Image Unavailable" id="moviePoster"/>
-			</td>
-					<td> ${STAR.id} </td>
-					<td> ${STAR.firstName} ${stars.lastName} </td>
-					<td> ${STAR.dob} </td>
-					<td> <c:forEach var = "movie" items = "${STAR.movies}"> 
-						 <a href = "SingleMovieServlet?movieId=${movie.id}">	${movie.title} <br/> </a>
-						</c:forEach>
-					 </td>
+
+				<td><img src="${STAR.photoUrl}" width="200" height="200" alt="Image Unavailable" id="moviePoster"/></td>
+				<td> ${STAR.id} </td>
+				<td> ${STAR.firstName} ${stars.lastName} </td>
+				<td> ${STAR.dob} </td>
+				<td> <c:forEach var = "movie" items = "${STAR.movies}"> 
+					 <a href = "SingleMovieServlet?movieId=${movie.id}">	${movie.title} <br><br/> </a>
+					</c:forEach>
+				 </td>
 				</tr>
 				
 			</table>
 		</div>
 	</div>
-<body>
-
-
+	
+	<a href="MovieListServlet">Back</a>
+	
 </body>
 </html>
