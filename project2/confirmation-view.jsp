@@ -1,54 +1,104 @@
-<%@page import="java.util.*, project2.*"%>
+<%@ page import = "project2.*" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <!DOCTYPE html>
-<html>
-	<title>Checkout</title>
-	<head lang="en"><meta charset="UTF-8"></head>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <!-- This file has been downloaded from Bootsnipp.com. Enjoy! -->
+    <title>Full screen background cover page. - Bootsnipp.com</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="main-page.css">
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
+</head>
 
 <body>
+	<div class="site-wrapper">
+	  <div class="site-wrapper-inner">
+	    <div class="cover-container">
+	      <div class="masthead clearfix">
+	        <div class="inner">
+	          <h3 class="masthead-brand">C I N E P H I M</h3>
+	
+	          <ul class="nav masthead-nav">	
+		        <li>
+	              <a href="main-page.jsp">Home</a>
+	            </li>
+	                    
+	            <li>
+	              <a href="search-view.jsp">Search</a>
+	            </li>
+	            
+	         	<li>
+	              <a href="Browse.jsp">Browse</a>
+	            </li>
+	
+	            <li>
+	              <a href="shopping-cart-view.jsp">Shopping Cart</a>
+	            </li>
+	            
+	           	<li>
+	              <a href="checkout-view.jsp">Checkout</a>
+	            </li>
+	            
 
-	<a href="main-page.jsp">Home</a>
-	<a href="shopping-cart-view.jsp">Shopping Cart</a>
-	<a href="checkout-view.jsp">Checkout</a>
+	          </ul>
+	        </div>
+	      </div>
 
-	<h1>Credit card approved! Transaction complete!</h1>
-	<br></br>
-	<h3>Order History</h3>
+
+		<div class="row cover-container options-padding">
+
+
+			<h3>Review Order</h3>
+			<table class="table table-responsive table-background text-color">
+				<c:forEach var="movie" items="${SHOPPING_CART}">
+					
+						<tr>
+							<th><p align="center">Movie ID</p></th>
+							<th><p align="center">Title</p></th>
+							<th><p align="center">Quantity</p></th>
+						</tr>
+																				
+						<tr>
+							<td> ${movie.id} </td>
+							<td> ${movie.title} </td>
+							<td> ${movie.quantity} </td>	
+						</tr>
+						
+				</c:forEach>
+			</table>
+			
+			
+			<h3>Order History</h3>
+			<table class="table table-responsive table-background text-color">
+				<c:forEach var="trans" items="${BOUGHT_BY_CUSTOMER}">
+					
+						<tr>
+							<th><p align="center">Transaction ID</p></th>
+							<th><p align="center">Customer ID</p></th>
+							<th><p align="center">Movie ID</p></th>
+							<th><p align="center">Sale Date</p></th>
+						</tr>
+																				
+						<tr>
+							<td> ${trans.id} </td>
+							<td> ${trans.customerId} </td>
+							<td> ${trans.movieId} </td>
+							<td> ${trans.saleDate} </td>			
+						</tr>
+							
+				</c:forEach>
+			</table>
+			
 	
-	<c:forEach var="trans" items="${BOUGHT_BY_CUSTOMER}">
-		<table>
-			<tr>
-				<th>Transaction ID</th>
-				<th>Customer ID</th>
-				<th>Movie ID</th>
-				<th>Sale Date</th>
-			</tr>
-																	
-			<tr>
-				<td> ${trans.id} </td>
-				<td> ${trans.customerId} </td>
-				<td> ${trans.movieId} </td>
-				<td> ${trans.saleDate} </td>			
-			</tr>
-		</table>		
-	</c:forEach>
-	
-	<c:forEach var="movie" items="${SHOPPING_CART}">
-		<table>
-			<tr>
-				<th>Movie ID</th>
-				<th>Title</th>
-				<th>Quantity</th>
-			</tr>
-																	
-			<tr>
-				<td> ${movie.id} </td>
-				<td> ${movie.title} </td>
-				<td> ${movie.quantity} </td>	
-			</tr>
-		</table>	
-	</c:forEach>
-	
+		</div>
+
+	    </div>
+	</div>
+	</div>
+
 </body>
 </html>

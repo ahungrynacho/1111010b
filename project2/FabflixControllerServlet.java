@@ -165,6 +165,9 @@ public class FabflixControllerServlet extends HttpServlet {
 			List<Sale> sales = database.getSales(customer.getId());
 			session.setAttribute("BOUGHT_BY_CUSTOMER", sales);		// transactions made by the logged-in customer
 			
+			this.shoppingCart.clear();
+			session.setAttribute("SHOPPING_CART", this.shoppingCart);
+			
 			dispatcher = request.getRequestDispatcher("/confirmation-view.jsp");
 			dispatcher.forward(request, response);
 			
@@ -295,7 +298,9 @@ public class FabflixControllerServlet extends HttpServlet {
 			}
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			// if all else fails, go to the home page
+			RequestDispatcher dispatcher =  request.getRequestDispatcher("main-page.jsp");
+			dispatcher.forward(request, response);
 		}
 		
 	}

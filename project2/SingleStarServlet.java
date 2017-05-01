@@ -33,7 +33,9 @@ public class SingleStarServlet extends HttpServlet {
 		try {
 			listSingleStar(request,response);
 		} catch (Exception e) {
-			e.printStackTrace();
+			// if all else fails, go to the home page
+			RequestDispatcher dispatcher =  request.getRequestDispatcher("main-page.jsp");
+			dispatcher.forward(request, response);
 		}
 	}
 

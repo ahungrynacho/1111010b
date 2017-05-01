@@ -38,8 +38,9 @@ public class SingleMovieServlet extends HttpServlet {
 		try {
 			listSingleMovie(request,response);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// if all else fails, go to the home page
+			RequestDispatcher dispatcher =  request.getRequestDispatcher("main-page.jsp");
+			dispatcher.forward(request, response);
 		}
 	}
 
