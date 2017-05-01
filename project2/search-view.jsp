@@ -52,6 +52,7 @@
 		<div class="inner cover">
 			<form class="form-horizontal" action="FabflixControllerServlet" method="GET">
 				<input type="hidden" name="method" value="search">		<!-- METHOD -->
+				<input type="hidden" name="newSearchQuery" value="true">
 				<fieldset>
 					
 					<!-- Text input-->

@@ -126,8 +126,15 @@ public class MovieListServlet extends HttpServlet {
 			session.removeAttribute("browseGenre"); 
 		}
 		
-		if (switchedMethod)
+		
+		// newSearchQuery from search-view.jsp
+		if (switchedMethod || 
+				request.getParameter("genreName") != null || 
+				request.getParameter("titleSort") != null || 
+				request.getParameter("method") != null || 
+				request.getParameter("newSearchQuery") != null)
 			limit = 10;
+		
 		else if ( request.getParameter("limit") != null) {
 			limit = Integer.parseInt(request.getParameter("limit"));
 			session.setAttribute("limit",limit);
