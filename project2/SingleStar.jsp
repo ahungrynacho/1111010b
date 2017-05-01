@@ -69,7 +69,7 @@
 						
 					</table>
 			
-					<a class="text-color" href="MovieListServlet">Back</a>					
+					<a class="text-color" href="MovieListServlet">Continue Shopping</a>					
 						
 						
 					</div>

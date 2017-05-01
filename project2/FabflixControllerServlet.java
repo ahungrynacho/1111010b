@@ -130,6 +130,14 @@ public class FabflixControllerServlet extends HttpServlet {
 		return javaDate.replace("-", "/");
 	}
 	
+	@SuppressWarnings("unchecked")
+	private void clearShoppingCart(HttpServletRequest request, HttpServletResponse response) {
+		
+		this.shoppingCart = (List<Movie>) session.getAttribute("SHOPPING_CART");
+		this.shoppingCart.clear();
+		session.setAttribute("SHOPPING_CART", this.shoppingCart);
+		
+	}
 	
 	@SuppressWarnings("unchecked")
 	private void processPayment(HttpServletRequest request, 
@@ -165,9 +173,6 @@ public class FabflixControllerServlet extends HttpServlet {
 			List<Sale> sales = database.getSales(customer.getId());
 			session.setAttribute("BOUGHT_BY_CUSTOMER", sales);		// transactions made by the logged-in customer
 			
-			this.shoppingCart.clear();
-			session.setAttribute("SHOPPING_CART", this.shoppingCart);
-			
 			dispatcher = request.getRequestDispatcher("/confirmation-view.jsp");
 			dispatcher.forward(request, response);
 			
@@ -181,35 +186,78 @@ public class FabflixControllerServlet extends HttpServlet {
 
 	}
 	
+	private boolean inShoppingCart(List<Movie> cart, int movieId) {
+		for (Movie m : cart) {
+			if (m.getId() == movieId)
+				return true;
+		}
+		return false;
+	}
+	
+	private void addQuantity(List<Movie> cart, int movieId, int amount) {
+		for (Movie m : cart) {
+			if (m.getId() == movieId) {
+				int newQuant = m.getQuantity() + amount;
+				m.setQuantity(newQuant);
+			}
+		}
+	}
+	
+	private void setQuantity(List<Movie> cart, int movieId, int amount) {
+		for (Movie m : cart) {
+			if (m.getId() == movieId) {
+				m.setQuantity(amount);
+				return;
+			}
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	private void addToCart(HttpServletRequest request, 
 							HttpServletResponse response) throws Exception {
 		/* Adds a movie to the shopping cart with the user-specified quantity. */
 
 		this.shoppingCart = (List<Movie>) session.getAttribute("SHOPPING_CART");
-		String quantity = request.getParameter("quantity");
+		int quantity = 0;
+		if (request.getParameter("quantity") != null)
+			quantity = Integer.parseInt(request.getParameter("quantity"));
+		
 		
 		try {
-			if (quantity == null) {
+			if (request.getParameter("quantity") == null) {
 				// button clicked from movie list
 				
 				String movieId = request.getParameter("movieId");
-				Movie movie = database.getMovie(movieId);
-				movie.setQuantity(1);
-				this.shoppingCart.add(movie);
+				Movie movie = null;
+				
+				if (inShoppingCart(this.shoppingCart, Integer.parseInt(movieId))) {
+					addQuantity(this.shoppingCart, Integer.parseInt(movieId), 1);
+				} else {
+					movie = database.getMovie(movieId);
+					movie.setQuantity(1);
+					this.shoppingCart.add(movie);
+				}
+				
 				session.setAttribute("SHOPPING_CART", this.shoppingCart);
 				
 				RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
 				dispatcher.forward(request, response);			
 			}
 			
-			else if (Integer.parseInt(quantity) > 0 ) {
+			else if (quantity > 0 ) {
 				// button clicked from single-movie page
 
 				String movieId = request.getParameter("movieId");
-				Movie movie = database.getMovie(movieId);
-				movie.setQuantity(Integer.parseInt(quantity));
-				this.shoppingCart.add(movie);
+				
+				if (inShoppingCart(this.shoppingCart, Integer.parseInt(movieId))) {
+					addQuantity(this.shoppingCart, Integer.parseInt(movieId), quantity);
+				}
+				else {
+					Movie movie = database.getMovie(movieId);
+					movie.setQuantity(quantity);
+					this.shoppingCart.add(movie);
+				}
+					
 				session.setAttribute("SHOPPING_CART", this.shoppingCart);
 				
 				RequestDispatcher dispatcher = request.getRequestDispatcher("shopping-cart-view.jsp");
@@ -293,17 +341,24 @@ public class FabflixControllerServlet extends HttpServlet {
 				updateCart(request, response);
 				break;
 				
+			case "clearShoppingCart":
+				clearShoppingCart(request, response);
+				break;
+				
 			default:
 				break;		// do nothing
 			}
 			
 		} catch (Exception e) {
 			// if all else fails, go to the home page
-			RequestDispatcher dispatcher =  request.getRequestDispatcher("main-page.jsp");
-			dispatcher.forward(request, response);
+			e.printStackTrace();
+//			RequestDispatcher dispatcher =  request.getRequestDispatcher("main-page.jsp");
+//			dispatcher.forward(request, response);
 		}
 		
 	}
+
+
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {

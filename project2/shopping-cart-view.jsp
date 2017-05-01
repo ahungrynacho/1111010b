@@ -75,7 +75,10 @@
 							
 							<form action="checkout-view.jsp" method="GET">
 								<button class="btn button btn-success btn-sm" type="submit">Proceed to Checkout</button>
-							</form>					
+							</form>	
+							
+							<br>
+							<a class="text-color" href="MovieListServlet">Continue Shopping</a>				
 					
 							</div>
 					</div>

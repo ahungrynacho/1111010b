@@ -89,9 +89,11 @@
 					<button type="submit" class="btn btn-success btn-sm" name="command" value="creditCardInfo">Submit</button>
 				</fieldset>
 				
-				
+				<br>
+				<a href="MovieListServlet">Continue Shopping</a>
 			</form>
 			
+			<br>
 			<c:if test="${EMPTY_CART}">
 				<label>Empty shopping cart! Please add a movie!</label>
 			</c:if>
